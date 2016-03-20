@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -32,7 +33,7 @@ public class Main extends Activity {
 	private TextView principalTextView, taxesTextView, insuranceTextView, totalTextView;
 	private Button calculateButton;
 	private AdLayout adView;
-
+	private int mLastEdited =0;
 	private int mCount =0;
 	/* Your ad unit id. Replace with your actual ad unit id. */
 	/** Called when the activity is first created. */
@@ -43,36 +44,35 @@ public class Main extends Activity {
 		setContentView(R.layout.main);	
 
 		AdRegistration.setAppKey("ebbbcbf8ca734a10aa32cffb9f2c4971");
-		
+
 		initViews();
 		validateValues();
 		attachTextChangeHandlers();	
 		attachButtonHandlers();
-			
-//		// Add the AdView to the view hierarchy. The view will have no size
-//		// until the ad is loaded.
-//		RelativeLayout rLayout = (RelativeLayout)findViewById(R.id.relativeLayout);
-//		rLayout.addView(adView);
-//		
-//		RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) adView.getLayoutParams();
-//		params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
-//		adView.setLayoutParams(params);		
-//		// Create an ad request. Check logcat output for the hashed device ID to
-//		// get test ads on a physical device.
-//		
-//		final TelephonyManager tm =(TelephonyManager)getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
-//		String deviceid = tm.getDeviceId();
-//		Log.i("REID",deviceid);
-		
+
+		//		// Add the AdView to the view hierarchy. The view will have no size
+		//		// until the ad is loaded.
+		//		RelativeLayout rLayout = (RelativeLayout)findViewById(R.id.relativeLayout);
+		//		rLayout.addView(adView);
+		//		
+		//		RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) adView.getLayoutParams();
+		//		params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+		//		adView.setLayoutParams(params);		
+		//		// Create an ad request. Check logcat output for the hashed device ID to
+		//		// get test ads on a physical device.
+		//		
+		//		final TelephonyManager tm =(TelephonyManager)getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
+		//		String deviceid = tm.getDeviceId();
+		//		Log.i("REID",deviceid);
+
 	}
-	
-	
+
+
 	private void attachButtonHandlers() {
 		calculateButton.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
-				// TODO Auto-generated method stub
 				if(validateValues()) {
 					//set totals of each edit text value
 					calculateValues();
@@ -140,8 +140,10 @@ public class Main extends Activity {
 
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
-				((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).showSoftInput(downPaymentEditText, 0);
-				downPaymentEditText.setText(""); return false;
+					mLastEdited = downPaymentEditText.getId();
+					((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).showSoftInput(downPaymentEditText, 0);
+					downPaymentEditText.setText(""); 
+				return false;
 
 			}
 		});
@@ -149,8 +151,10 @@ public class Main extends Activity {
 
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
-				((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).showSoftInput(percentageEditText, 0);
-				percentageEditText.setText(""); return false;								
+					mLastEdited = percentageEditText.getId();
+					((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).showSoftInput(percentageEditText, 0);
+					percentageEditText.setText(""); 
+				return false;								
 			}
 		});
 	}
@@ -165,6 +169,7 @@ public class Main extends Activity {
 		{
 			base = base * mbase;
 		}
+
 		float loanAmount = Float.valueOf(mortAmountEditText.getText().toString()) - Float.valueOf(downPaymentEditText.getText().toString());
 		float annualTax = (Float.valueOf(taxEditText.getText().toString()) * Float.valueOf(mortAmountEditText.getText().toString()))/100;
 		float annualInsurance = Float.valueOf(insuranceEditText.getText().toString());
@@ -193,7 +198,13 @@ public class Main extends Activity {
 			termsEditText.setText("30"); //default to 30  year loan
 		}
 		if(IREditText.getText().toString().equalsIgnoreCase("")){
-			IREditText.setText("4.25");
+			IREditText.setText("4");
+		}
+
+		if(percentageEditText.getText().length() > 0 && mLastEdited == percentageEditText.getId()) {
+			recalculate(1);//recalculate the downpayment term
+		} else if(downPaymentEditText.getText().length() > 0 && mLastEdited == downPaymentEditText.getId()) {
+			recalculate(0);
 		}
 		try {
 			if(Integer.parseInt(mortAmountEditText.getText().toString()) < 0 ) {
@@ -215,7 +226,7 @@ public class Main extends Activity {
 			public void onFocusChange(View v, boolean hasFocus) {
 				if(!hasFocus && v.getId() == R.id.DownPaymentEditText) {
 					recalculate(0);
-				}
+				} 
 			}
 		});
 
@@ -268,58 +279,58 @@ public class Main extends Activity {
 	public void onResume() {
 		super.onResume();
 		// Create the interstitial.
-        final InterstitialAd interstitialAd = new InterstitialAd(this);
+		final InterstitialAd interstitialAd = new InterstitialAd(this);
 
-        // Set the listener to use the callbacks below.
-        interstitialAd.setListener(new AdListener() {
-            @Override
-            public void onAdLoaded(final Ad ad, final AdProperties adProperties) {
-                interstitialAd.showAd();
-            }
+		// Set the listener to use the callbacks below.
+		interstitialAd.setListener(new AdListener() {
+			@Override
+			public void onAdLoaded(final Ad ad, final AdProperties adProperties) {
+				interstitialAd.showAd();
+			}
 
-            @Override
-            public void onAdFailedToLoad(final Ad ad, final AdError adError) {
-                Log.i("mc", "ad failed: " + adError.getMessage());                
-            }
+			@Override
+			public void onAdFailedToLoad(final Ad ad, final AdError adError) {
+				Log.i("mc", "ad failed: " + adError.getMessage());                
+			}
 
-            @Override
-            public void onAdExpanded(final Ad ad) {
+			@Override
+			public void onAdExpanded(final Ad ad) {
 
-            }
+			}
 
-            @Override
-            public void onAdCollapsed(final Ad ad) {
+			@Override
+			public void onAdCollapsed(final Ad ad) {
 
-            }
+			}
 
-            @Override
-            public void onAdDismissed(final Ad ad) {                
-            }
-        });
+			@Override
+			public void onAdDismissed(final Ad ad) {                
+			}
+		});
 
-        // Load the interstitial.
-        mCount++;
-        if(mCount % 3 == 0) {
-        	interstitialAd.loadAd();
-        }
-		
-		
-//		AdRequest adRequest = new AdRequest.Builder()
-//		.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
-//		.addTestDevice("deviceid")
-//		.build();
-//		// Start loading the ad in the background.
-//		adView.loadAd(adRequest);
-//		if (adView != null) {
-//			adView.resume();
-//		}
+		// Load the interstitial.
+		mCount++;
+		if(mCount % 3 == 0) {
+			interstitialAd.loadAd();
+		}
+
+
+		//		AdRequest adRequest = new AdRequest.Builder()
+		//		.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+		//		.addTestDevice("deviceid")
+		//		.build();
+		//		// Start loading the ad in the background.
+		//		adView.loadAd(adRequest);
+		//		if (adView != null) {
+		//			adView.resume();
+		//		}
 	}
 
 	@Override
 	public void onPause() {
-//		if (adView != null) {
-//			adView.pause();
-//		}
+		//		if (adView != null) {
+		//			adView.pause();
+		//		}
 		super.onPause();
 	}
 
