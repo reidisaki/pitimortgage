@@ -34,7 +34,6 @@ public class Main extends Activity {
 	private Button calculateButton;
 	private AdLayout adView;
 	private int mLastEdited =0;
-	private int mCount =0;
 	/* Your ad unit id. Replace with your actual ad unit id. */
 	/** Called when the activity is first created. */
 
@@ -44,7 +43,7 @@ public class Main extends Activity {
 		setContentView(R.layout.main);	
 
 		AdRegistration.setAppKey("ebbbcbf8ca734a10aa32cffb9f2c4971");
-
+		
 		initViews();
 		validateValues();
 		attachTextChangeHandlers();	
@@ -178,7 +177,10 @@ public class Main extends Activity {
 		taxesTextView.setText(String.format("%.2f",annualTax/12));
 		insuranceTextView.setText(String.format("%.2f",annualInsurance / 12));
 		HOA = Float.valueOf(HOA_EditText.getText().toString());
-		totalTextView.setText(String.format("%.2f",loanAmount * mi / ( 1 - (1/base)) + annualTax /12 + annualInsurance /12 + HOA));	    	   
+		totalTextView.setText(String.format("%.2f",loanAmount * mi / ( 1 - (1/base)) + annualTax /12 + annualInsurance /12 + HOA));
+		
+		boolean adLoaded = adView.loadAd();
+		Log.i("Reid","LOADING AD now! : " + adLoaded);
 	}
 
 	protected boolean validateValues() {
@@ -309,11 +311,11 @@ public class Main extends Activity {
 		});
 
 		// Load the interstitial.
-		mCount++;
-		if(mCount % 3 == 0) {
-			interstitialAd.loadAd();
-		}
-
+		
+		interstitialAd.loadAd();
+		
+		Log.i("Reid","LOADING AD now!");
+		adView.loadAd();
 
 		//		AdRequest adRequest = new AdRequest.Builder()
 		//		.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
@@ -359,10 +361,10 @@ public class Main extends Activity {
 		insuranceTextView = (TextView)findViewById(R.id.InsuranceMonthValueText);
 		taxesTextView = (TextView)findViewById(R.id.TaxesMonthValueText);
 		totalTextView = (TextView)findViewById(R.id.TotalValueText);
-		adView = (AdLayout)findViewById(R.id.adView);		
 
 		adView = (AdLayout)findViewById(R.id.adView);
 		AdTargetingOptions adOptions = new AdTargetingOptions();
-		adView.loadAd(adOptions);
+		Log.i("Reid","LOADING AD now!");
+		adView.loadAd(adOptions);		
 	}
 }
