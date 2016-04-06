@@ -3,6 +3,7 @@ package com.kalei.android.yoneko.MortgageCalculator;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -34,6 +35,8 @@ public class Main extends Activity {
 	private Button calculateButton;
 	private AdLayout adView;
 	private int mLastEdited =0;
+	private int mCount = 0;
+	Handler handler = new Handler();
 	/* Your ad unit id. Replace with your actual ad unit id. */
 	/** Called when the activity is first created. */
 
@@ -160,10 +163,10 @@ public class Main extends Activity {
 
 	protected void calculateValues() {
 		// TODO Auto-generated method stub
-		float mi = Float.valueOf(IREditText.getText().toString()) / 1200;
-		float base = 1;
-		float mbase = 1 + mi;
-		float HOA =0;
+		double mi = Double.valueOf(IREditText.getText().toString()) / 1200;
+		double base = 1;
+		double mbase = 1 + mi;
+		double HOA =0;
 		for (int i=0; i<Integer.valueOf(termsEditText.getText().toString()) * 12; i++)
 		{
 			base = base * mbase;
@@ -173,14 +176,31 @@ public class Main extends Activity {
 		float annualTax = (Float.valueOf(taxEditText.getText().toString()) * Float.valueOf(mortAmountEditText.getText().toString()))/100;
 		float annualInsurance = Float.valueOf(insuranceEditText.getText().toString());
 
-		principalTextView.setText(String.format("%.2f",loanAmount * mi / ( 1 - (1/base))));
-		taxesTextView.setText(String.format("%.2f",annualTax/12));
-		insuranceTextView.setText(String.format("%.2f",annualInsurance / 12));
-		HOA = Float.valueOf(HOA_EditText.getText().toString());
-		totalTextView.setText(String.format("%.2f",loanAmount * mi / ( 1 - (1/base)) + annualTax /12 + annualInsurance /12 + HOA));
 		
-		boolean adLoaded = adView.loadAd();
-		Log.i("Reid","LOADING AD now! : " + adLoaded);
+		
+		principalTextView.setText(String.format(" %,.2f", loanAmount * mi / ( 1 - (1/base))));
+		taxesTextView.setText(String.format("%,.2f",annualTax/12));
+		insuranceTextView.setText(String.format("%,.2f",annualInsurance / 12));
+		HOA = Double.valueOf(HOA_EditText.getText().toString());
+		totalTextView.setText(String.format("%,.2f",loanAmount * mi / ( 1 - (1/base)) + annualTax /12 + annualInsurance /12 + HOA));
+		
+		try {
+			handler.post(
+			new Runnable() {
+				
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					boolean adLoaded = adView.loadAd();
+					Log.i("Reid","LOADING AD now! : " + adLoaded);
+				}
+			});
+		
+		
+		} catch (NullPointerException e) {
+			Log.i("mc","error from amazon");
+		}
+		
 	}
 
 	protected boolean validateValues() {
@@ -209,10 +229,10 @@ public class Main extends Activity {
 			recalculate(0);
 		}
 		try {
-			if(Integer.parseInt(mortAmountEditText.getText().toString()) < 0 ) {
+			if(Double.parseDouble(mortAmountEditText.getText().toString()) < 0 ) {
 				isValid = false;
 			}
-			if(Integer.parseInt(downPaymentEditText.getText().toString()) < 0 ) {
+			if(Double.parseDouble(downPaymentEditText.getText().toString()) < 0 ) {
 				isValid = false;
 			}
 		} catch(Exception e) {
@@ -245,13 +265,13 @@ public class Main extends Activity {
 	}
 	protected void recalculate(Integer type) {
 		//check the view if it's id is downpayment, then convert percentage and vice versa
-		if(!mortAmountEditText.getText().toString().equalsIgnoreCase("") && Integer.valueOf(mortAmountEditText.getText().toString()) > 0){			
-			int downPayment =0;
+		if(!mortAmountEditText.getText().toString().equalsIgnoreCase("") && Double.valueOf(mortAmountEditText.getText().toString()) > 0){			
+			double downPayment =0;
 			double percent = 0;
 			boolean isValid = true;
 			if(type.equals(0)){
 				try {
-					downPayment = Integer.valueOf(downPaymentEditText.getText().toString());
+					downPayment = Double.valueOf(downPaymentEditText.getText().toString());
 				} catch(Exception e) {
 					isValid = false;
 				}	
@@ -264,23 +284,21 @@ public class Main extends Activity {
 			}
 
 			if(isValid) {
-				int mortgage =  Integer.valueOf(mortAmountEditText.getText().toString());
+				double mortgage =  Double.valueOf(mortAmountEditText.getText().toString());
 				if(type.equals(0)){
-					float newPercent = ((float)downPayment/mortgage)*100;
+					double newPercent = ((double)downPayment/mortgage)*100;
 					percentageEditText.setText(String.format("%.2f", newPercent));
 				} else {
-					int newMort = (int)((percent/100) * mortgage);
-					downPaymentEditText.setText(String.valueOf(newMort));
+					double newMort = (double)((percent/100) * mortgage);
+					downPaymentEditText.setText(String.format("%.2f", newMort));
 				}
 			}
 		}	
 
 	}
 
-	@Override
-	public void onResume() {
-		super.onResume();
-		// Create the interstitial.
+	public void showInterstitial() {
+		try {
 		final InterstitialAd interstitialAd = new InterstitialAd(this);
 
 		// Set the listener to use the callbacks below.
@@ -311,11 +329,44 @@ public class Main extends Activity {
 		});
 
 		// Load the interstitial.
+		handler.post(
+		new Runnable() {
+			
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				interstitialAd.loadAd();		
+			}
+		});
 		
-		interstitialAd.loadAd();
+		} catch (NullPointerException e) {
+			Log.i("mc", "null pointer from Amazon: " + e.getMessage());
+		}
+	}
+	@Override
+	public void onResume() {
+		super.onResume();
+		// Create the interstitial.
+		if(mCount % 2 == 0) {			
+			showInterstitial();
+			Log.i("mc","LOADING AD now!");
+		}
+		mCount++;
+		Log.i("mc","mCount: " + mCount);
+		try {
+			handler.post(
+			new Runnable() {
+				
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					adView.loadAd();			
+				}
+			});
 		
-		Log.i("Reid","LOADING AD now!");
-		adView.loadAd();
+		} catch(NullPointerException e) {
+			Log.i("mc", "null pointer from Amazon: " + e.getMessage());
+		}
 
 		//		AdRequest adRequest = new AdRequest.Builder()
 		//		.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
@@ -363,8 +414,22 @@ public class Main extends Activity {
 		totalTextView = (TextView)findViewById(R.id.TotalValueText);
 
 		adView = (AdLayout)findViewById(R.id.adView);
-		AdTargetingOptions adOptions = new AdTargetingOptions();
+		
 		Log.i("Reid","LOADING AD now!");
-		adView.loadAd(adOptions);		
+		try {
+			handler.post(
+			new Runnable() {
+				
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					AdTargetingOptions adOptions = new AdTargetingOptions();
+					adView.loadAd(adOptions);			
+				}
+			});
+		
+		} catch(NullPointerException e) {
+			Log.i("mc", "null pointer from Amazon: " + e.getMessage());
+		}
 	}
 }
