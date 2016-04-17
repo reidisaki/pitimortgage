@@ -136,8 +136,6 @@
                         android:imeOptions="actionNext"
                         android:numeric="decimal" >
                     </EditText>
-
-
                 </TableRow>
 
                 <TableRow>
@@ -152,8 +150,8 @@
                     <EditText
                         android:id="@+id/InsuranceEditText"
                         android:layout_width="0dp"
-                        android:layout_weight=".25"
                         android:layout_height="wrap_content"
+                        android:layout_weight=".25"
                         android:imeOptions="actionNext"
                         android:numeric="decimal" >
                     </EditText>
@@ -171,8 +169,8 @@
                     <EditText
                         android:id="@+id/TermsEditText"
                         android:layout_width="0dp"
-                        android:layout_weight=".25"
                         android:layout_height="wrap_content"
+                        android:layout_weight=".25"
                         android:numeric="integer" >
                     </EditText>
 
@@ -203,88 +201,98 @@
                 <TableRow>
 
                     <TextView
-                        android:textSize="26sp"
                         android:id="@+id/PrincipalText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:paddingRight="5dip"
-                        android:text="@string/PrincipalText" >
+                        android:text="@string/PrincipalText"
+                        android:textSize="26sp" >
                     </TextView>
 
                     <TextView
-                        android:textSize="26sp"
                         android:id="@+id/PrincipalValueText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/PrincipalValueText" >
+                        android:text="@string/PrincipalValueText"
+                        android:textSize="26sp" >
                     </TextView>
                 </TableRow>
 
                 <TableRow>
 
                     <TextView
-                        android:textSize="26sp"
                         android:id="@+id/InsuranceMonthText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/InsuranceMonthText" >
+                        android:text="@string/InsuranceMonthText"
+                        android:textSize="26sp" >
                     </TextView>
 
                     <TextView
-                        android:textSize="26sp"
                         android:id="@+id/InsuranceMonthValueText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/InsuranceMonthValueText" >
+                        android:text="@string/InsuranceMonthValueText"
+                        android:textSize="26sp" >
                     </TextView>
                 </TableRow>
 
                 <TableRow>
 
                     <TextView
-                        android:textSize="26sp"
                         android:id="@+id/TaxesMonthText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/TaxesMonthText" >
+                        android:text="@string/TaxesMonthText"
+                        android:textSize="26sp" >
                     </TextView>
 
                     <TextView
-                        android:textSize="26sp"
                         android:id="@+id/TaxesMonthValueText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/TaxesMonthValueText" >
+                        android:text="@string/TaxesMonthValueText"
+                        android:textSize="26sp" >
                     </TextView>
                 </TableRow>
 
                 <TableRow>
 
                     <TextView
-                        android:textSize="30sp"
                         android:id="@+id/TotalText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/TotalText" >
+                        android:text="@string/TotalText"
+                        android:textSize="30sp" >
                     </TextView>
 
                     <TextView
-                        android:textSize="30sp"
                         android:id="@+id/TotalValueText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/TotalValueText" >
+                        android:text="@string/TotalValueText"
+                        android:textSize="30sp" >
                     </TextView>
                 </TableRow>
             </TableLayout>
         </LinearLayout>
     </ScrollView>
 
-    <com.amazon.device.ads.AdLayout
+    <com.google.android.gms.ads.AdView
+        xmlns:ads="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/adView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        ads:adSize="BANNER"
+        ads:adUnitId="@string/admob_banner_id" />
+    <!--
+         <com.amazon.device.ads.AdLayout
         android:id="@+id/adView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true" />
+    -->
 
 </RelativeLayout>

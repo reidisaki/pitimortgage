@@ -17,14 +17,10 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.amazon.device.ads.Ad;
-import com.amazon.device.ads.AdError;
-import com.amazon.device.ads.AdLayout;
-import com.amazon.device.ads.AdListener;
-import com.amazon.device.ads.AdProperties;
-import com.amazon.device.ads.AdRegistration;
-import com.amazon.device.ads.AdTargetingOptions;
-import com.amazon.device.ads.InterstitialAd;
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.InterstitialAd;
 
 
 
@@ -33,10 +29,12 @@ public class Main extends Activity {
 	private EditText mortAmountEditText, downPaymentEditText, percentageEditText, taxEditText, insuranceEditText, termsEditText,IREditText, HOA_EditText; 
 	private TextView principalTextView, taxesTextView, insuranceTextView, totalTextView;
 	private Button calculateButton;
-	private AdLayout adView;
+	//	private AdLayout adView;
+	private AdView mAdView;
 	private int mLastEdited =0;
 	private int mCount = 0;
 	Handler handler = new Handler();
+	private InterstitialAd mInterstitialAd;
 	/* Your ad unit id. Replace with your actual ad unit id. */
 	/** Called when the activity is first created. */
 
@@ -45,8 +43,8 @@ public class Main extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);	
 
-		AdRegistration.setAppKey("ebbbcbf8ca734a10aa32cffb9f2c4971");
-		
+		//		AdRegistration.setAppKey("ebbbcbf8ca734a10aa32cffb9f2c4971");
+
 		initViews();
 		validateValues();
 		attachTextChangeHandlers();	
@@ -142,9 +140,9 @@ public class Main extends Activity {
 
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
-					mLastEdited = downPaymentEditText.getId();
-					((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).showSoftInput(downPaymentEditText, 0);
-					downPaymentEditText.setText(""); 
+				mLastEdited = downPaymentEditText.getId();
+				((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).showSoftInput(downPaymentEditText, 0);
+				downPaymentEditText.setText(""); 
 				return false;
 
 			}
@@ -153,9 +151,9 @@ public class Main extends Activity {
 
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
-					mLastEdited = percentageEditText.getId();
-					((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).showSoftInput(percentageEditText, 0);
-					percentageEditText.setText(""); 
+				mLastEdited = percentageEditText.getId();
+				((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).showSoftInput(percentageEditText, 0);
+				percentageEditText.setText(""); 
 				return false;								
 			}
 		});
@@ -176,33 +174,49 @@ public class Main extends Activity {
 		float annualTax = (Float.valueOf(taxEditText.getText().toString()) * Float.valueOf(mortAmountEditText.getText().toString()))/100;
 		float annualInsurance = Float.valueOf(insuranceEditText.getText().toString());
 
-		
-		
+
+
 		principalTextView.setText(String.format(" %,.2f", loanAmount * mi / ( 1 - (1/base))));
 		taxesTextView.setText(String.format("%,.2f",annualTax/12));
 		insuranceTextView.setText(String.format("%,.2f",annualInsurance / 12));
 		HOA = Double.valueOf(HOA_EditText.getText().toString());
 		totalTextView.setText(String.format("%,.2f",loanAmount * mi / ( 1 - (1/base)) + annualTax /12 + annualInsurance /12 + HOA));
-		
-		try {
-			handler.post(
-			new Runnable() {
-				
-				@Override
-				public void run() {
-					// TODO Auto-generated method stub
-					boolean adLoaded = adView.loadAd();
-					Log.i("Reid","LOADING AD now! : " + adLoaded);
-				}
-			});
-		
-		
-		} catch (NullPointerException e) {
-			Log.i("mc","error from amazon");
-		}
-		
-	}
+		requestNewAd();
 
+
+		//		try {
+		//			handler.post(
+		//			new Runnable() {
+		//				
+		//				@Override
+		//				public void run() {
+		//					// TODO Auto-generated method stub
+		//					boolean adLoaded = adView.loadAd();
+		//					Log.i("Reid","LOADING AD now! : " + adLoaded);
+		//				}
+		//			});
+		//		
+		//		
+		//		} catch (NullPointerException e) {
+		//			Log.i("mc","error from amazon");
+		//		}
+
+	}
+	
+	private void requestNewAd() {
+		AdRequest adRequest = new AdRequest.Builder()
+		.addTestDevice("SEE_YOUR_LOGCAT_TO_GET_YOUR_DEVICE_ID")
+		.build();
+
+		mAdView.loadAd(adRequest);
+	}
+	private void requestNewInterstitial() {
+		AdRequest adRequest = new AdRequest.Builder()
+		.addTestDevice("SEE_YOUR_LOGCAT_TO_GET_YOUR_DEVICE_ID")
+		.build();
+//already showing an interstitial on splash page
+//		mInterstitialAd.loadAd(adRequest);
+	}
 	protected boolean validateValues() {
 		boolean isValid = true;
 		// Check each editText and if it's blank set it to 0 or it's defaulted value.
@@ -289,94 +303,122 @@ public class Main extends Activity {
 					double newPercent = ((double)downPayment/mortgage)*100;
 					percentageEditText.setText(String.format("%.2f", newPercent));
 				} else {
-					double newMort = (double)((percent/100) * mortgage);
-					downPaymentEditText.setText(String.format("%.2f", newMort));
+					int newMort = (int)((percent/100) * mortgage);
+					downPaymentEditText.setText(String.valueOf(newMort));
 				}
 			}
 		}	
 
 	}
 
-	public void showInterstitial() {
-		try {
-		final InterstitialAd interstitialAd = new InterstitialAd(this);
+	//amazon BS
 
-		// Set the listener to use the callbacks below.
-		interstitialAd.setListener(new AdListener() {
-			@Override
-			public void onAdLoaded(final Ad ad, final AdProperties adProperties) {
-				interstitialAd.showAd();
-			}
+	//	public void showInterstitial() {
+	//		try {
+	//		final InterstitialAd interstitialAd = new InterstitialAd(this);
+	//
+	//		// Set the listener to use the callbacks below.
+	//		interstitialAd.setListener(new AdListener() {
+	//			@Override
+	//			public void onAdLoaded(final Ad ad, final AdProperties adProperties) {
+	//				interstitialAd.showAd();
+	//			}
+	//
+	//			@Override
+	//			public void onAdFailedToLoad(final Ad ad, final AdError adError) {
+	//				Log.i("mc", "ad failed: " + adError.getMessage());                
+	//			}
+	//
+	//			@Override
+	//			public void onAdExpanded(final Ad ad) {
+	//
+	//			}
+	//
+	//			@Override
+	//			public void onAdCollapsed(final Ad ad) {
+	//
+	//			}
+	//
+	//			@Override
+	//			public void onAdDismissed(final Ad ad) {                
+	//			}
+	//		});
+	//
+	//		// Load the interstitial.
+	//		handler.post(
+	//		new Runnable() {
+	//			
+	//			@Override
+	//			public void run() {
+	//				// TODO Auto-generated method stub
+	//				interstitialAd.loadAd();		
+	//			}
+	//		});
+	//		
+	//		} catch (NullPointerException e) {
+	//			Log.i("mc", "null pointer from Amazon: " + e.getMessage());
+	//		}
+	//	}
 
-			@Override
-			public void onAdFailedToLoad(final Ad ad, final AdError adError) {
-				Log.i("mc", "ad failed: " + adError.getMessage());                
-			}
-
-			@Override
-			public void onAdExpanded(final Ad ad) {
-
-			}
-
-			@Override
-			public void onAdCollapsed(final Ad ad) {
-
-			}
-
-			@Override
-			public void onAdDismissed(final Ad ad) {                
-			}
-		});
-
-		// Load the interstitial.
-		handler.post(
-		new Runnable() {
-			
-			@Override
-			public void run() {
-				// TODO Auto-generated method stub
-				interstitialAd.loadAd();		
-			}
-		});
-		
-		} catch (NullPointerException e) {
-			Log.i("mc", "null pointer from Amazon: " + e.getMessage());
-		}
-	}
 	@Override
 	public void onResume() {
 		super.onResume();
 		// Create the interstitial.
+
+		//amazon bs
+		//		Log.i("mc","mCount: " + mCount);
+		//		try {
+		//			handler.post(
+		//			new Runnable() {
+		//				
+		//				@Override
+		//				public void run() {
+		//					// TODO Auto-generated method stub
+		//					adView.loadAd();			
+		//				}
+		//			});
+		//		
+		//		} catch(NullPointerException e) {
+		//			Log.i("mc", "null pointer from Amazon: " + e.getMessage());
+		//		}
+
+		AdRequest adRequest = new AdRequest.Builder()
+		.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+		.addTestDevice("deviceid")
+		.build();
+		// Start loading the ad in the background.
+		mAdView.loadAd(adRequest);
+		if (mAdView != null) {
+			mAdView.resume();
+		}
+		mInterstitialAd = new InterstitialAd(this);
+		mInterstitialAd.setAdUnitId(getString(R.string.interstitial));
+
+		mInterstitialAd.setAdListener(new AdListener() {
+			@Override
+			public void onAdLoaded() {
+				super.onAdLoaded();
+				mInterstitialAd.show();
+			}
+
+			@Override
+			public void onAdFailedToLoad(final int errorCode) {
+				super.onAdFailedToLoad(errorCode);
+
+			}
+
+			@Override
+			public void onAdClosed() {
+
+			}
+		});
 		if(mCount % 2 == 0) {			
-			showInterstitial();
+			requestNewInterstitial();
 			Log.i("mc","LOADING AD now!");
 		}
 		mCount++;
-		Log.i("mc","mCount: " + mCount);
-		try {
-			handler.post(
-			new Runnable() {
-				
-				@Override
-				public void run() {
-					// TODO Auto-generated method stub
-					adView.loadAd();			
-				}
-			});
 		
-		} catch(NullPointerException e) {
-			Log.i("mc", "null pointer from Amazon: " + e.getMessage());
-		}
 
-		//		AdRequest adRequest = new AdRequest.Builder()
-		//		.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
-		//		.addTestDevice("deviceid")
-		//		.build();
-		//		// Start loading the ad in the background.
-		//		adView.loadAd(adRequest);
-		//		if (adView != null) {
-		//			adView.resume();
-		//		}
 	}
 
 	@Override
@@ -391,8 +433,8 @@ public class Main extends Activity {
 	@Override
 	public void onDestroy() {
 		// Destroy the AdView.
-		if (adView != null) {
-			adView.destroy();
+		if (mAdView != null) {
+			mAdView.destroy();
 		}
 		super.onDestroy();
 	}
@@ -413,23 +455,23 @@ public class Main extends Activity {
 		taxesTextView = (TextView)findViewById(R.id.TaxesMonthValueText);
 		totalTextView = (TextView)findViewById(R.id.TotalValueText);
 
-		adView = (AdLayout)findViewById(R.id.adView);
-		
-		Log.i("Reid","LOADING AD now!");
-		try {
-			handler.post(
-			new Runnable() {
-				
-				@Override
-				public void run() {
-					// TODO Auto-generated method stub
-					AdTargetingOptions adOptions = new AdTargetingOptions();
-					adView.loadAd(adOptions);			
-				}
-			});
-		
-		} catch(NullPointerException e) {
-			Log.i("mc", "null pointer from Amazon: " + e.getMessage());
-		}
+		mAdView = (AdView)findViewById(R.id.adView);
+
+//		Log.i("Reid","LOADING AD now!");
+//		try {
+//			handler.post(
+//					new Runnable() {
+//
+//						@Override
+//						public void run() {
+//							// TODO Auto-generated method stub
+//							AdTargetingOptions adOptions = new AdTargetingOptions();
+//							adView.loadAd(adOptions);			
+//						}
+//					});
+//
+//		} catch(NullPointerException e) {
+//			Log.i("mc", "null pointer from Amazon: " + e.getMessage());
+//		}
 	}
 }
