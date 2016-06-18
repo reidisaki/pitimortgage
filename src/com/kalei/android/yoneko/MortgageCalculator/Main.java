@@ -1,11 +1,14 @@
 package com.kalei.android.yoneko.MortgageCalculator;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.text.ParseException;
+
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -169,9 +172,9 @@ public class Main extends Activity {
 		{
 			base = base * mbase;
 		}
-
-		float loanAmount = Float.valueOf(mortAmountEditText.getText().toString()) - Float.valueOf(downPaymentEditText.getText().toString());
-		float annualTax = (Float.valueOf(taxEditText.getText().toString()) * Float.valueOf(mortAmountEditText.getText().toString()))/100;
+		
+		float loanAmount = Float.valueOf(InputUtils.convertStringToLong(mortAmountEditText.getText().toString())) - Float.valueOf(downPaymentEditText.getText().toString());
+		float annualTax = (Float.valueOf(taxEditText.getText().toString()) * Float.valueOf(InputUtils.convertStringToLong(mortAmountEditText.getText().toString())))/100;
 		float annualInsurance = Float.valueOf(insuranceEditText.getText().toString());
 
 
@@ -243,7 +246,7 @@ public class Main extends Activity {
 			recalculate(0);
 		}
 		try {
-			if(Double.parseDouble(mortAmountEditText.getText().toString()) < 0 ) {
+			if(InputUtils.convertStringToLong(mortAmountEditText.getText().toString()) < 0 ) {
 				isValid = false;
 			}
 			if(Double.parseDouble(downPaymentEditText.getText().toString()) < 0 ) {
@@ -256,6 +259,17 @@ public class Main extends Activity {
 	}
 
 	private void attachTextChangeHandlers() {
+		mortAmountEditText.setOnFocusChangeListener(new OnFocusChangeListener() {
+			
+			@Override
+			public void onFocusChange(View v, boolean hasFocus) {
+				if(v.getId() == R.id.MortgateAmountEditText){
+					if(mortAmountEditText.getText().toString().length() > 0) {
+					mortAmountEditText.setText(InputUtils.formatDisplayNumberWithCommas(Long.parseLong(mortAmountEditText.getText().toString())));
+					}
+				}
+			}
+		});
 		downPaymentEditText.setOnFocusChangeListener(new OnFocusChangeListener() {
 
 			@Override
@@ -279,34 +293,43 @@ public class Main extends Activity {
 	}
 	protected void recalculate(Integer type) {
 		//check the view if it's id is downpayment, then convert percentage and vice versa
-		if(!mortAmountEditText.getText().toString().equalsIgnoreCase("") && Double.valueOf(mortAmountEditText.getText().toString()) > 0){			
-			double downPayment =0;
-			double percent = 0;
-			boolean isValid = true;
-			if(type.equals(0)){
-				try {
-					downPayment = Double.valueOf(downPaymentEditText.getText().toString());
-				} catch(Exception e) {
-					isValid = false;
-				}	
-			} else {
-				try {					
-					percent = Double.valueOf(percentageEditText.getText().toString());
-				} catch(Exception e) {
-					isValid = false;
-				}					
-			}
-
-			if(isValid) {
-				double mortgage =  Double.valueOf(mortAmountEditText.getText().toString());
+		try {
+			
+			if(!mortAmountEditText.getText().toString().equalsIgnoreCase("") && InputUtils.convertStringToLong(mortAmountEditText.getText().toString()) > 0){			
+				long mortAmount = (Long)NumberFormat.getNumberInstance(java.util.Locale.US).parse(mortAmountEditText.getText().toString());
+				long downPayment =0;
+				double percent = 0;
+				boolean isValid = true;
 				if(type.equals(0)){
-					double newPercent = ((double)downPayment/mortgage)*100;
-					percentageEditText.setText(String.format("%.2f", newPercent));
+					try {
+						downPayment = Long.valueOf(downPaymentEditText.getText().toString());
+					} catch(Exception e) {
+						isValid = false;
+					}	
 				} else {
-					int newMort = (int)((percent/100) * mortgage);
-					downPaymentEditText.setText(String.valueOf(newMort));
+					try {					
+						percent = Double.valueOf(percentageEditText.getText().toString());
+					} catch(Exception e) {
+						isValid = false;
+					}					
+				}
+
+				if(isValid) {					
+					if(type.equals(0)){
+						double newPercent = ((double)downPayment/mortAmount)*100;
+						percentageEditText.setText(String.format("%.2f", newPercent));
+					} else {
+						int newMort = (int)((percent/100) * mortAmount);
+						downPaymentEditText.setText(String.valueOf(newMort));
+					}
 				}
 			}
+		} catch (NumberFormatException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}	
 
 	}
