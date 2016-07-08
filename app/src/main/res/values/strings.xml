@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hello World, Main!</string>
+    <string name="app_name">MortgageCalculator</string>
+<string name="MortgageAmountText">Mortgage</string>
+<string name="DownPaymentText">Amount \n  Down</string>
+<string name="PercentageText">Percentage \n Down</string>
+<string name="TaxText">Tax Rate</string>
+<string name="InsuranceText">Insurance</string>
+<string name="MortgageText">Monthly Payment</string>
+
+<string name="MonthlyMortgageText"></string>
+
+<string name="CalculateButton">Calc</string>
+
+<string name="TermsText">Terms</string>
+
+<string name="PrincipalText">Monthly</string>
+<string name="PrincipalValueText">0</string>
+<string name="InterestText">Interest</string>
+<string name="InsuranceMonthText">Ins.</string>
+<string name="TaxesMonthValueText">0</string>
+<string name="TotalText">Total</string>
+<string name="InterestValueText">0</string>
+<string name="InsuranceMonthValueText">0</string>
+<string name="TaxesMonthText">Taxes</string>
+<string name="interstitial">ca-app-pub-5747146577301976/2330375642</string>
+
+
+<string name="TotalValueText">0</string>
+
+<string name="IRText">Interest Rate</string>
+<string name="HOAText">HOA</string>
+<string name="admob_banner_id">ca-app-pub-5747146577301976/9992390046</string>
+
+</resources>
