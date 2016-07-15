@@ -344,13 +344,13 @@ public class Main extends Activity {
                 boolean isValid = true;
                 if (type.equals(0)) {
                     try {
-                        downPayment = Long.valueOf(downPaymentEditText.getText().toString());
+                        downPayment = Long.valueOf(InputUtils.convertStringToLong(downPaymentEditText.getText().toString()));
                     } catch (Exception e) {
                         isValid = false;
                     }
                 } else {
                     try {
-                        percent = Double.valueOf(percentageEditText.getText().toString());
+                        percent = Double.valueOf(percentageEditText.getText().toString().equals("0.0") ? "0" : percentageEditText.getText().toString());
                     } catch (Exception e) {
                         isValid = false;
                     }
