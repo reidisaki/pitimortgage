@@ -224,7 +224,9 @@ public class Main extends Activity {
         insuranceTextView.setText(String.format("%,.2f", annualInsurance / 12));
         HOA = Double.valueOf(HOA_EditText.getText().toString());
         totalTextView.setText(String.format("%,.2f", loanAmount * mi / (1 - (1 / base)) + annualTax / 12 + annualInsurance / 12 + HOA));
-        requestNewAd();
+        if (SplashActivity.hasInternet(this)) {
+            requestNewAd();
+        }
 
         //		try {
         //			handler.post(
@@ -251,6 +253,9 @@ public class Main extends Activity {
                 .build();
 
         mAdView.loadAd(adRequest);
+        if (mAdView != null) {
+            mAdView.resume();
+        }
     }
 
     private void requestNewInterstitial() {
@@ -446,40 +451,42 @@ public class Main extends Activity {
         //			Log.i("mc", "null pointer from Amazon: " + e.getMessage());
         //		}
 
-        AdRequest adRequest = new AdRequest.Builder()
-                .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
-                .addTestDevice("deviceid")
-                .build();
-        // Start loading the ad in the background.
-        mAdView.loadAd(adRequest);
-        if (mAdView != null) {
-            mAdView.resume();
+        if (SplashActivity.hasInternet(this)) {
+            AdRequest adRequest = new AdRequest.Builder()
+                    .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+                    .addTestDevice("deviceid")
+                    .build();
+            // Start loading the ad in the background.
+            mAdView.loadAd(adRequest);
+            if (mAdView != null) {
+                mAdView.resume();
+            }
+            mInterstitialAd = new InterstitialAd(this);
+            mInterstitialAd.setAdUnitId(getString(R.string.interstitial));
+
+            mInterstitialAd.setAdListener(new AdListener() {
+                @Override
+                public void onAdLoaded() {
+                    super.onAdLoaded();
+                    mInterstitialAd.show();
+                }
+
+                @Override
+                public void onAdFailedToLoad(final int errorCode) {
+                    super.onAdFailedToLoad(errorCode);
+                }
+
+                @Override
+                public void onAdClosed() {
+
+                }
+            });
+            if (mCount % 2 == 0) {
+                requestNewInterstitial();
+                Log.i("mc", "LOADING AD now!");
+            }
+            mCount++;
         }
-        mInterstitialAd = new InterstitialAd(this);
-        mInterstitialAd.setAdUnitId(getString(R.string.interstitial));
-
-        mInterstitialAd.setAdListener(new AdListener() {
-            @Override
-            public void onAdLoaded() {
-                super.onAdLoaded();
-                mInterstitialAd.show();
-            }
-
-            @Override
-            public void onAdFailedToLoad(final int errorCode) {
-                super.onAdFailedToLoad(errorCode);
-            }
-
-            @Override
-            public void onAdClosed() {
-
-            }
-        });
-        if (mCount % 2 == 0) {
-            requestNewInterstitial();
-            Log.i("mc", "LOADING AD now!");
-        }
-        mCount++;
     }
 
     @Override

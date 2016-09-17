@@ -1,8 +1,10 @@
 package com.kalei.android.yoneko.MortgageCalculator;
 
-
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 
 import com.google.android.gms.ads.AdListener;
@@ -11,7 +13,15 @@ import com.google.android.gms.ads.InterstitialAd;
 
 public class SplashActivity extends Activity {
 
-	InterstitialAd mInterstitialAd;
+    InterstitialAd mInterstitialAd;
+
+    public static boolean hasInternet(Context context) {
+
+        ConnectivityManager cm =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
+    }
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
@@ -26,26 +36,34 @@ public class SplashActivity extends Activity {
                 super.onAdLoaded();
                 mInterstitialAd.show();
             }
-            
+
             @Override
             public void onAdClosed() {
-            	Intent i = new Intent(SplashActivity.this, Main.class);        	
-            	startActivity(i);            	
+                startActivity();
             }
         });
-        
     }
-@Override
+
+    private void startActivity() {
+        Intent i = new Intent(SplashActivity.this, Main.class);
+        startActivity(i);
+    }
+
+    @Override
     public void onResume() {
-	super.onResume();
-    	requestNewInterstitial();
+        super.onResume();
+        if (!hasInternet(this)) {
+            startActivity();
+        } else {
+            requestNewInterstitial();
+        }
     }
-	
-	// Create the interstitial.
+
+    // Create the interstitial.
 //    final InterstitialAd interstitialAd = new InterstitialAd(this);
 //    AdRegistration.setAppKey("ebbbcbf8ca734a10aa32cffb9f2c4971");
 //    AdRegistration.enableLogging(true);
-    
+
     // Set the listener to use the callbacks below.
 //    interstitialAd.setListener(new AdListener() {
 //        @Override
@@ -82,7 +100,7 @@ public class SplashActivity extends Activity {
         AdRequest adRequest = new AdRequest.Builder()
 //                .addTestDevice("SEE_YOUR_LOGCAT_TO_GET_YOUR_DEVICE_ID").addTestDevice("1227AC999E49F1FE325D0EA5E2E4E604")
                 .build();
-        
+
         mInterstitialAd.loadAd(adRequest);
     }
 }
