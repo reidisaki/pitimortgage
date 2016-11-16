@@ -7,9 +7,9 @@ android {
     defaultConfig {
         applicationId "com.kalei.android.yoneko.MortgageCalculator"
         minSdkVersion 9
-        targetSdkVersion 23
-        versionName "1.4.0"
-        versionCode 14
+        targetSdkVersion 25
+        versionName "1.4.2"
+        versionCode 16
     }
 
     buildTypes {
@@ -20,5 +20,7 @@ android {
     }
     dependencies {
         compile 'com.google.android.gms:play-services:9.2.0'
+        compile 'com.google.android.gms:play-services-location:9.2.0'
+        compile 'com.android.volley:volley:1.0.0'
     }
 }

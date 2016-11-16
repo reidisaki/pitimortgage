@@ -5,10 +5,31 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.Manifest.permission;
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.location.Address;
+import android.location.Criteria;
+import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.ActivityCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -17,16 +38,24 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
 import android.view.View.OnTouchListener;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.IOException;
+import java.security.Provider;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
-public class Main extends Activity {
+public class Main extends Activity implements LocationListener {
     private EditText mortAmountEditText, downPaymentEditText, percentageEditText, taxEditText, insuranceEditText, termsEditText, IREditText, HOA_EditText;
     private TextView principalTextView, taxesTextView, insuranceTextView, totalTextView;
     private Button calculateButton;
@@ -36,6 +65,12 @@ public class Main extends Activity {
     private int mCount = 0;
     Handler handler = new Handler();
     private InterstitialAd mInterstitialAd;
+    private LocationManager locationManager;
+    private String mProvider;
+    private RequestQueue mQueue;
+    private String TAG = "MortgageCalculator";
+    private Map<String, String> states;
+    private String mStateName = "";
     /* Your ad unit id. Replace with your actual ad unit id. */
 
     /**
@@ -263,7 +298,7 @@ public class Main extends Activity {
                 .addTestDevice("SEE_YOUR_LOGCAT_TO_GET_YOUR_DEVICE_ID")
                 .build();
 //already showing an interstitial on splash page
-//		mInterstitialAd.loadAd(adRequest);
+//        mInterstitialAd.loadAd(adRequest);
     }
 
     protected boolean validateValues() {
@@ -432,6 +467,19 @@ public class Main extends Activity {
     @Override
     public void onResume() {
         super.onResume();
+        if (ActivityCompat.checkSelfPermission(this, permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        locationManager.requestLocationUpdates(mProvider, 40000, 1, this);
+
         // Create the interstitial.
 
         //amazon bs
@@ -495,6 +543,18 @@ public class Main extends Activity {
         //			adView.pause();
         //		}
         super.onPause();
+        if (ActivityCompat.checkSelfPermission(this, permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        locationManager.removeUpdates(this);
     }
 
     /**
@@ -510,6 +570,24 @@ public class Main extends Activity {
     }
 
     private void initViews() {
+        loadStateMap();
+
+        mQueue = Volley.newRequestQueue(this);
+        // Get the location manager
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        // Define the criteria how to select the locatioin provider -> use
+        // default
+        Criteria criteria = new Criteria();
+
+        if (ActivityCompat.checkSelfPermission(this, permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            //todo
+            //use hardcoded mortgage rate
+        } else {
+            mProvider = locationManager.getBestProvider(criteria, false);
+            Location location = locationManager.getLastKnownLocation(mProvider);
+        }
 
         mortAmountEditText = (EditText) findViewById(R.id.MortgateAmountEditText);
 
@@ -544,5 +622,186 @@ public class Main extends Activity {
 //		} catch(NullPointerException e) {
 //			Log.i("mc", "null pointer from Amazon: " + e.getMessage());
 //		}
+    }
+
+    private float getMortgageRate(String state) {
+        float rate = 0;
+
+        // Instantiate the RequestQueue.
+        String url = "http://www.zillow.com/webservice/GetRateSummary.htm?zws-id=" + getString(R.string.zillow_id) + "&state=" + state + "&output=json";
+
+// Request a string response from the provided URL.
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        // Display the first 500 characters of the response string.
+                        try {
+                            JSONObject rootObject = new JSONObject(response);
+                            String thirtyYearFixed = rootObject.getJSONObject("response").getJSONObject("today").getString("thirtyYearFixed");
+                            IREditText.setText(thirtyYearFixed);
+
+                            Animation fadeIn = AnimationUtils.loadAnimation(Main.this, R.anim.fade_in);
+                            IREditText.startAnimation(fadeIn);
+
+                            fadeIn.setAnimationListener(new Animation.AnimationListener() {
+                                @Override
+                                public void onAnimationStart(Animation animation) {
+                                    IREditText.setTextColor(Color.GREEN);
+                                }
+
+                                @Override
+                                public void onAnimationEnd(Animation animation) {
+                                    Animation fadeOut = AnimationUtils.loadAnimation(Main.this, R.anim.fade_out);
+                                    IREditText.startAnimation(fadeOut);
+                                    IREditText.setTextColor(Color.WHITE);
+                                }
+
+                                @Override
+                                public void onAnimationRepeat(Animation animation) {
+                                }
+                            });
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.i("mc", "error: " + error.getMessage());
+            }
+        });
+        stringRequest.setTag(TAG);
+// Add the request to the RequestQueue.
+        mQueue.add(stringRequest);
+
+        return rate;
+    }
+
+    private boolean isLocationEnabled() {
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+    }
+
+    @Override
+    public void onLocationChanged(final Location location) {
+        try {
+            if (!mStateName.equals(getStateName(location))) {
+                mStateName = getStateName(location);
+                getMortgageRate(mStateName);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String getStateName(final Location location) throws IOException {
+        Geocoder geoCoder = new Geocoder(this, Locale.getDefault());
+        List<Address> addresses = geoCoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+        String address = "";
+
+        if (addresses != null && addresses.size() >= 0) {
+            return states.get(addresses.get(0).getAdminArea());
+        }
+        return "";
+    }
+
+    @Override
+    public void onStatusChanged(final String provider, final int status, final Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(final String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(final String provider) {
+
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mQueue != null) {
+            mQueue.cancelAll(TAG);
+        }
+    }
+
+    private void loadStateMap() {
+
+        states = new HashMap<>();
+        states.put("Alabama", "AL");
+        states.put("Alaska", "AK");
+        states.put("Alberta", "AB");
+        states.put("American Samoa", "AS");
+        states.put("Arizona", "AZ");
+        states.put("Arkansas", "AR");
+        states.put("Armed Forces (AE)", "AE");
+        states.put("Armed Forces Americas", "AA");
+        states.put("Armed Forces Pacific", "AP");
+        states.put("British Columbia", "BC");
+        states.put("California", "CA");
+        states.put("Colorado", "CO");
+        states.put("Connecticut", "CT");
+        states.put("Delaware", "DE");
+        states.put("District Of Columbia", "DC");
+        states.put("Florida", "FL");
+        states.put("Georgia", "GA");
+        states.put("Guam", "GU");
+        states.put("Hawaii", "HI");
+        states.put("Idaho", "ID");
+        states.put("Illinois", "IL");
+        states.put("Indiana", "IN");
+        states.put("Iowa", "IA");
+        states.put("Kansas", "KS");
+        states.put("Kentucky", "KY");
+        states.put("Louisiana", "LA");
+        states.put("Maine", "ME");
+        states.put("Manitoba", "MB");
+        states.put("Maryland", "MD");
+        states.put("Massachusetts", "MA");
+        states.put("Michigan", "MI");
+        states.put("Minnesota", "MN");
+        states.put("Mississippi", "MS");
+        states.put("Missouri", "MO");
+        states.put("Montana", "MT");
+        states.put("Nebraska", "NE");
+        states.put("Nevada", "NV");
+        states.put("New Brunswick", "NB");
+        states.put("New Hampshire", "NH");
+        states.put("New Jersey", "NJ");
+        states.put("New Mexico", "NM");
+        states.put("New York", "NY");
+        states.put("Newfoundland", "NF");
+        states.put("North Carolina", "NC");
+        states.put("North Dakota", "ND");
+        states.put("Northwest Territories", "NT");
+        states.put("Nova Scotia", "NS");
+        states.put("Nunavut", "NU");
+        states.put("Ohio", "OH");
+        states.put("Oklahoma", "OK");
+        states.put("Ontario", "ON");
+        states.put("Oregon", "OR");
+        states.put("Pennsylvania", "PA");
+        states.put("Prince Edward Island", "PE");
+        states.put("Puerto Rico", "PR");
+        states.put("Quebec", "QC");
+        states.put("Rhode Island", "RI");
+        states.put("Saskatchewan", "SK");
+        states.put("South Carolina", "SC");
+        states.put("South Dakota", "SD");
+        states.put("Tennessee", "TN");
+        states.put("Texas", "TX");
+        states.put("Utah", "UT");
+        states.put("Vermont", "VT");
+        states.put("Virgin Islands", "VI");
+        states.put("Virginia", "VA");
+        states.put("Washington", "WA");
+        states.put("West Virginia", "WV");
+        states.put("Wisconsin", "WI");
+        states.put("Wyoming", "WY");
+        states.put("Yukon Territory", "YT");
     }
 }
