@@ -50,6 +50,7 @@ import java.io.IOException;
 import java.security.Provider;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -305,7 +306,7 @@ public class Main extends Activity implements LocationListener {
         boolean isValid = true;
         // Check each editText and if it's blank set it to 0 or it's defaulted value.
         if (taxEditText.getText().toString().equalsIgnoreCase("")) {
-            taxEditText.setText("1.08");//default to Los Angeles
+            taxEditText.setText("1.1");//default to Los Angeles
         }
         if (insuranceEditText.getText().toString().equalsIgnoreCase("")) {
             insuranceEditText.setText("1200"); //default to cheap LA insruance
@@ -469,16 +470,12 @@ public class Main extends Activity implements LocationListener {
         super.onResume();
         if (ActivityCompat.checkSelfPermission(this, permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
+            requestPermissions();
+        } else {
+            if (locationManager != null) {
+                locationManager.requestLocationUpdates(mProvider, 40000, 1, this);
+            }
         }
-        locationManager.requestLocationUpdates(mProvider, 40000, 1, this);
 
         // Create the interstitial.
 
@@ -545,16 +542,11 @@ public class Main extends Activity implements LocationListener {
         super.onPause();
         if (ActivityCompat.checkSelfPermission(this, permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
+            requestPermissions();
         }
-        locationManager.removeUpdates(this);
+        if (locationManager != null) {
+            locationManager.removeUpdates(this);
+        }
     }
 
     /**
@@ -569,24 +561,36 @@ public class Main extends Activity implements LocationListener {
         super.onDestroy();
     }
 
+    private void requestPermissions() {
+        final ArrayList<String> permissionsMissing = new ArrayList<>();
+        ArrayList<String> permissionsNeeded = new ArrayList<>();
+        permissionsNeeded.add(permission.ACCESS_COARSE_LOCATION);
+        permissionsNeeded.add(permission.ACCESS_FINE_LOCATION);
+        for (final String permission : permissionsNeeded) {
+            if (ActivityCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                permissionsMissing.add(permission);
+            }
+        }
+
+        if (!permissionsMissing.isEmpty()) {
+            final String[] array = new String[permissionsMissing.size()];
+            permissionsMissing.toArray(array);
+
+            //We will get the result asynchronously in onRequestPermissionsResult().
+            ActivityCompat.requestPermissions(this, array, 10001);
+        }
+    }
+
     private void initViews() {
         loadStateMap();
 
         mQueue = Volley.newRequestQueue(this);
-        // Get the location manager
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        // Define the criteria how to select the locatioin provider -> use
-        // default
-        Criteria criteria = new Criteria();
 
         if (ActivityCompat.checkSelfPermission(this, permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-            //todo
-            //use hardcoded mortgage rate
+            requestPermissions();
         } else {
-            mProvider = locationManager.getBestProvider(criteria, false);
-            Location location = locationManager.getLastKnownLocation(mProvider);
+            setupLocation();
         }
 
         mortAmountEditText = (EditText) findViewById(R.id.MortgateAmountEditText);
@@ -622,6 +626,27 @@ public class Main extends Activity implements LocationListener {
 //		} catch(NullPointerException e) {
 //			Log.i("mc", "null pointer from Amazon: " + e.getMessage());
 //		}
+    }
+
+    private void setupLocation() {
+        // Define the criteria how to select the locatioin provider -> use
+        // default
+        Criteria criteria = new Criteria();
+        // Get the location manager
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        mProvider = locationManager.getBestProvider(criteria, false);
+        if (ActivityCompat.checkSelfPermission(this, permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        Location location = locationManager.getLastKnownLocation(mProvider);
     }
 
     private float getMortgageRate(String state) {
@@ -803,5 +828,22 @@ public class Main extends Activity implements LocationListener {
         states.put("Wisconsin", "WI");
         states.put("Wyoming", "WY");
         states.put("Yukon Territory", "YT");
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (ActivityCompat.checkSelfPermission(this, permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        setupLocation();
+        locationManager.requestLocationUpdates(mProvider, 40000, 1, this);
     }
 }

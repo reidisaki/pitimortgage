@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
                 android:layout_width="fill_parent"
+                android:padding="5dp"
                 android:layout_height="fill_parent">
 
     <ScrollView
@@ -31,6 +33,22 @@
                         android:imeOptions="actionNext"
                         android:numeric="decimal">
                 </EditText>
+                <TextView
+                        android:id="@+id/PrincipalText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingRight="10dip"
+                        android:gravity="right"
+                        android:text="@string/PrincipalText"
+                >
+                </TextView>
+
+                <TextView
+                        android:id="@+id/PrincipalValueText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/PrincipalValueText">
+                </TextView>
             </TableRow>
 
             <TableRow>
@@ -50,6 +68,22 @@
                         android:imeOptions="actionNext"
                         android:numeric="decimal">
                 </EditText>
+                <TextView
+                        android:id="@+id/InsuranceMonthText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/InsuranceMonthText"
+                        android:paddingRight="10dip"
+                        android:gravity="right"
+                >
+                </TextView>
+
+                <TextView
+                        android:id="@+id/InsuranceMonthValueText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/InsuranceMonthValueText">
+                </TextView>
             </TableRow>
 
             <TableRow>
@@ -68,21 +102,22 @@
                         android:imeOptions="actionNext"
                         android:numeric="decimal">
                 </EditText>
-
                 <TextView
-                        android:id="@+id/PrincipalText"
+                        android:id="@+id/TaxesMonthText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:paddingRight="5dip"
-                        android:text="@string/PrincipalText">
+                        android:paddingRight="10dip"
+                        android:gravity="right"
+                        android:text="@string/TaxesMonthText">
                 </TextView>
 
                 <TextView
-                        android:id="@+id/PrincipalValueText"
+                        android:id="@+id/TaxesMonthValueText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/PrincipalValueText">
+                        android:text="@string/TaxesMonthValueText">
                 </TextView>
+
             </TableRow>
 
             <TableRow>
@@ -101,19 +136,20 @@
                         android:imeOptions="actionNext"
                         android:numeric="decimal">
                 </EditText>
-
                 <TextView
-                        android:id="@+id/InsuranceMonthText"
+                        android:id="@+id/TotalText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/InsuranceMonthText">
+                        android:paddingRight="10dip"
+                        android:gravity="right"
+                        android:text="@string/TotalText">
                 </TextView>
 
                 <TextView
-                        android:id="@+id/InsuranceMonthValueText"
+                        android:id="@+id/TotalValueText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/InsuranceMonthValueText">
+                        android:text="@string/TotalValueText">
                 </TextView>
             </TableRow>
 
@@ -135,19 +171,7 @@
                         android:numeric="decimal">
                 </EditText>
 
-                <TextView
-                        android:id="@+id/TaxesMonthText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/TaxesMonthText">
-                </TextView>
 
-                <TextView
-                        android:id="@+id/TaxesMonthValueText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/TaxesMonthValueText">
-                </TextView>
             </TableRow>
 
             <TableRow>
@@ -166,20 +190,18 @@
                         android:imeOptions="actionNext"
                         android:numeric="decimal">
                 </EditText>
+                <Button
+                        android:id="@+id/CalculateButton"
+                        android:text="@string/CalculateButton"
+                        android:textSize="20dip">
+                </Button>
+                <!--TODO: should we even have a reset button? -->
+                <!--<Button-->
+                <!--android:id="@+id/ResetButton"-->
+                <!--android:text="Reset"-->
+                <!--android:textSize="20dip">-->
+                <!--</Button>-->
 
-                <TextView
-                        android:id="@+id/TotalText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/TotalText">
-                </TextView>
-
-                <TextView
-                        android:id="@+id/TotalValueText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/TotalValueText">
-                </TextView>
             </TableRow>
 
             <TableRow>
@@ -216,11 +238,7 @@
                         android:numeric="integer">
                 </EditText>
 
-                <Button
-                        android:id="@+id/CalculateButton"
-                        android:text="@string/CalculateButton"
-                        android:textSize="20dip">
-                </Button>
+
             </TableRow>
             <!--
 			<TableRow> <TextView android:id="@+id/InterestText"
