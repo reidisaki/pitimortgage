@@ -26,7 +26,7 @@ public class SplashActivity extends Activity {
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        setContentView(R.layout.activity_splash);
         mInterstitialAd = new InterstitialAd(this);
         mInterstitialAd.setAdUnitId(getString(R.string.interstitial));
 
@@ -53,7 +53,7 @@ public class SplashActivity extends Activity {
     public void onResume() {
         super.onResume();
         if (!hasInternet(this)) {
-            startActivity();
+//            startActivity();
         } else {
             requestNewInterstitial();
         }

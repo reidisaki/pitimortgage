@@ -4,12 +4,17 @@ import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
+import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
@@ -29,6 +34,8 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -47,7 +54,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
-import java.security.Provider;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -56,7 +62,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class Main extends Activity implements LocationListener {
+import static com.google.android.gms.location.LocationServices.API;
+import static com.google.android.gms.location.LocationServices.FusedLocationApi;
+
+public class Main extends Activity implements ConnectionCallbacks, OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
     private EditText mortAmountEditText, downPaymentEditText, percentageEditText, taxEditText, insuranceEditText, termsEditText, IREditText, HOA_EditText;
     private TextView principalTextView, taxesTextView, insuranceTextView, totalTextView;
     private Button calculateButton;
@@ -71,7 +80,20 @@ public class Main extends Activity implements LocationListener {
     private RequestQueue mQueue;
     private String TAG = "MortgageCalculator";
     private Map<String, String> states;
+
+    private static final int MILLISECONDS_PER_SECOND = 1000;
+
+    public static final int UPDATE_INTERVAL_IN_SECONDS = 600;
+    private static final long UPDATE_INTERVAL =
+            MILLISECONDS_PER_SECOND * UPDATE_INTERVAL_IN_SECONDS;
+
+    private static final int FASTEST_INTERVAL_IN_SECONDS = 1;
+    private static final long FASTEST_INTERVAL =
+            MILLISECONDS_PER_SECOND * FASTEST_INTERVAL_IN_SECONDS;
     private String mStateName = "";
+    private GoogleApiClient mGoogleApiClient;
+    private Location mLastLocation;
+    LocationRequest mLocationRequest;
     /* Your ad unit id. Replace with your actual ad unit id. */
 
     /**
@@ -82,7 +104,19 @@ public class Main extends Activity implements LocationListener {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        // Create an instance of GoogleAPIClient.
+        if (mGoogleApiClient == null) {
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(API)
+                    .build();
 
+            mLocationRequest = LocationRequest.create();
+            mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+            mLocationRequest.setInterval(UPDATE_INTERVAL);
+            mLocationRequest.setFastestInterval(FASTEST_INTERVAL);
+        }
         //		AdRegistration.setAppKey("ebbbcbf8ca734a10aa32cffb9f2c4971");
 
         initViews();
@@ -248,10 +282,10 @@ public class Main extends Activity implements LocationListener {
             base = base * mbase;
         }
 
-        float loanAmount = Float.valueOf(InputUtils.convertStringToLong(mortAmountEditText.getText().toString())) -
-                Float.valueOf(InputUtils.convertStringToLong(downPaymentEditText.getText().toString()));
+        float loanAmount = (float) InputUtils.convertStringToLong(mortAmountEditText.getText().toString()) -
+                (float) InputUtils.convertStringToLong(downPaymentEditText.getText().toString());
         float annualTax =
-                (Float.valueOf(taxEditText.getText().toString()) * Float.valueOf(InputUtils.convertStringToLong(mortAmountEditText.getText().toString()))) /
+                (Float.valueOf(taxEditText.getText().toString()) * (float) InputUtils.convertStringToLong(mortAmountEditText.getText().toString())) /
                         100;
         float annualInsurance = Float.valueOf(insuranceEditText.getText().toString());
 
@@ -270,7 +304,6 @@ public class Main extends Activity implements LocationListener {
         //
         //				@Override
         //				public void run() {
-        //					// TODO Auto-generated method stub
         //					boolean adLoaded = adView.loadAd();
         //					Log.i("Reid","LOADING AD now! : " + adLoaded);
         //				}
@@ -385,7 +418,7 @@ public class Main extends Activity implements LocationListener {
                 boolean isValid = true;
                 if (type.equals(0)) {
                     try {
-                        downPayment = Long.valueOf(InputUtils.convertStringToLong(downPaymentEditText.getText().toString()));
+                        downPayment = InputUtils.convertStringToLong(downPaymentEditText.getText().toString());
                     } catch (Exception e) {
                         isValid = false;
                     }
@@ -408,10 +441,8 @@ public class Main extends Activity implements LocationListener {
                 }
             }
         } catch (NumberFormatException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (ParseException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
@@ -455,7 +486,6 @@ public class Main extends Activity implements LocationListener {
     //
     //			@Override
     //			public void run() {
-    //				// TODO Auto-generated method stub
     //				interstitialAd.loadAd();
     //			}
     //		});
@@ -472,9 +502,9 @@ public class Main extends Activity implements LocationListener {
                 ActivityCompat.checkSelfPermission(this, permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions();
         } else {
-            if (locationManager != null) {
-                locationManager.requestLocationUpdates(mProvider, 40000, 1, this);
-            }
+//            if (locationManager != null) {
+//                locationManager.requestLocationUpdates(mProvider, 40000, 1, this);
+//            }
         }
 
         // Create the interstitial.
@@ -487,7 +517,6 @@ public class Main extends Activity implements LocationListener {
         //
         //				@Override
         //				public void run() {
-        //					// TODO Auto-generated method stub
         //					adView.loadAd();
         //				}
         //			});
@@ -544,9 +573,9 @@ public class Main extends Activity implements LocationListener {
                 ActivityCompat.checkSelfPermission(this, permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions();
         }
-        if (locationManager != null) {
-            locationManager.removeUpdates(this);
-        }
+//        if (locationManager != null) {
+//            locationManager.removeUpdates(this);
+//        }
     }
 
     /**
@@ -590,7 +619,7 @@ public class Main extends Activity implements LocationListener {
                 ActivityCompat.checkSelfPermission(this, permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions();
         } else {
-            setupLocation();
+//            setupLocation();
         }
 
         mortAmountEditText = (EditText) findViewById(R.id.MortgateAmountEditText);
@@ -617,7 +646,6 @@ public class Main extends Activity implements LocationListener {
 //
 //						@Override
 //						public void run() {
-//							// TODO Auto-generated method stub
 //							AdTargetingOptions adOptions = new AdTargetingOptions();
 //							adView.loadAd(adOptions);			
 //						}
@@ -637,7 +665,6 @@ public class Main extends Activity implements LocationListener {
         mProvider = locationManager.getBestProvider(criteria, false);
         if (ActivityCompat.checkSelfPermission(this, permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
             //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
@@ -647,6 +674,9 @@ public class Main extends Activity implements LocationListener {
             return;
         }
         Location location = locationManager.getLastKnownLocation(mProvider);
+        if (location != null) {
+
+        }
     }
 
     private float getMortgageRate(String state) {
@@ -710,6 +740,11 @@ public class Main extends Activity implements LocationListener {
 
     @Override
     public void onLocationChanged(final Location location) {
+        mLastLocation = location;
+        processLocation(location);
+    }
+
+    private void processLocation(final Location location) {
         try {
             if (!mStateName.equals(getStateName(location))) {
                 mStateName = getStateName(location);
@@ -732,26 +767,12 @@ public class Main extends Activity implements LocationListener {
     }
 
     @Override
-    public void onStatusChanged(final String provider, final int status, final Bundle extras) {
-
-    }
-
-    @Override
-    public void onProviderEnabled(final String provider) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(final String provider) {
-
-    }
-
-    @Override
     protected void onStop() {
         super.onStop();
         if (mQueue != null) {
             mQueue.cancelAll(TAG);
         }
+        mGoogleApiClient.disconnect();
     }
 
     private void loadStateMap() {
@@ -834,7 +855,6 @@ public class Main extends Activity implements LocationListener {
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         if (ActivityCompat.checkSelfPermission(this, permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
             //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
@@ -843,7 +863,35 @@ public class Main extends Activity implements LocationListener {
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        setupLocation();
-        locationManager.requestLocationUpdates(mProvider, 40000, 1, this);
+//        setupLocation();
+        FusedLocationApi.requestLocationUpdates(
+                mGoogleApiClient, mLocationRequest, this);
+//        locationManager.requestLocationUpdates(mProvider, 40000, 1, this);
+    }
+
+    @Override
+    public void onConnected(@Nullable final Bundle bundle) {
+        mLastLocation = FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
+        if (mLastLocation != null) {
+            processLocation(mLastLocation);
+        }
+        FusedLocationApi.requestLocationUpdates(
+                mGoogleApiClient, mLocationRequest, this);
+    }
+
+    @Override
+    public void onConnectionSuspended(final int i) {
+
+    }
+
+    protected void onStart() {
+        mGoogleApiClient.connect();
+        super.onStart();
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull final ConnectionResult connectionResult) {
+
     }
 }
