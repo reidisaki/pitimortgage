@@ -295,7 +295,8 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
         HOA = Double.valueOf(HOA_EditText.getText().toString());
         totalTextView.setText(String.format("%,.2f", loanAmount * mi / (1 - (1 / base)) + annualTax / 12 + annualInsurance / 12 + HOA));
         if (SplashActivity.hasInternet(this)) {
-            requestNewAd();
+            //dont' request new ad every time they click
+            //            requestNewAd();
         }
 
         //		try {
