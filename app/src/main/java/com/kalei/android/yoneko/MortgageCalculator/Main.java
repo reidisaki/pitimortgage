@@ -761,8 +761,12 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
         List<Address> addresses = geoCoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
         String address = "";
 
-        if (addresses != null && addresses.size() >= 0) {
-            return states.get(addresses.get(0).getAdminArea());
+        try {
+            if (addresses != null && addresses.size() >= 0) {
+                return states.get(addresses.get(0).getAdminArea());
+            }
+        } catch (Exception e) {
+            //dont fail on international users.
         }
         return "";
     }
