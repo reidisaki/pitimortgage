@@ -870,8 +870,10 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
             return;
         }
 //        setupLocation();
-        FusedLocationApi.requestLocationUpdates(
-                mGoogleApiClient, mLocationRequest, this);
+        if (mGoogleApiClient.isConnected()) {
+            FusedLocationApi.requestLocationUpdates(
+                    mGoogleApiClient, mLocationRequest, this);
+        }
 //        locationManager.requestLocationUpdates(mProvider, 40000, 1, this);
     }
 
