@@ -8,8 +8,8 @@ android {
         applicationId "com.kalei.android.yoneko.MortgageCalculator"
         minSdkVersion 9
         targetSdkVersion 25
-        versionName "1.4.4"
-        versionCode 20
+        versionName "1.4.5"
+        versionCode 21
     }
 
     buildTypes {

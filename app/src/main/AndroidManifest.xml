@@ -24,7 +24,8 @@
                 android:name="com.amazon.device.ads.AdActivity"
                 android:configChanges="keyboardHidden|orientation|screenSize"/>
         -->
-        <activity android:name=".SplashActivity">
+        <activity android:name=".SplashActivity"
+                  android:noHistory="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
