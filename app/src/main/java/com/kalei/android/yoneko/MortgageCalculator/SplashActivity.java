@@ -54,12 +54,6 @@ public class SplashActivity extends Activity {
 
             ActivityCompat.requestPermissions(this, new String[]{permission.ACCESS_FINE_LOCATION,
                     permission.INTERNET}, 0);
-        } else {
-            new Handler().postDelayed(new Runnable() {
-                public void run() {
-                    startActivity();
-                }
-            }, 200);
         }
         mInterstitialAd = new InterstitialAd(this);
         mInterstitialAd.setAdUnitId(getString(R.string.interstitial));
