@@ -1,11 +1,16 @@
 package com.kalei.android.yoneko.MortgageCalculator;
 
+import android.Manifest.permission;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.view.Window;
 
 import com.google.android.gms.ads.AdListener;
@@ -24,14 +29,40 @@ public class SplashActivity extends Activity {
         return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
+    public void onRequestPermissionsResult(int requestCode,
+            String[] permissions,
+            int[] grantResults) {
+        if (requestCode == 0) {
+            if (grantResults.length > 0) {
+                requestNewInterstitial();
+            } else {
+                finish();
+                // Permission was denied or request was cancelled
+            }
+        }
+    }
+
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_splash);
+
+        if (ContextCompat.checkSelfPermission(this,
+                permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this, new String[]{permission.ACCESS_FINE_LOCATION,
+                    permission.INTERNET}, 0);
+        } else {
+            new Handler().postDelayed(new Runnable() {
+                public void run() {
+                    startActivity();
+                }
+            }, 200);
+        }
         mInterstitialAd = new InterstitialAd(this);
         mInterstitialAd.setAdUnitId(getString(R.string.interstitial));
-
         mInterstitialAd.setAdListener(new AdListener() {
             @Override
             public void onAdLoaded() {
