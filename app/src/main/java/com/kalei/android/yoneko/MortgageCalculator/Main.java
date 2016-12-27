@@ -35,6 +35,7 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -93,6 +94,9 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
     LocationRequest mLocationRequest;
+
+
+
     /* Your ad unit id. Replace with your actual ad unit id. */
 
     /**
@@ -105,6 +109,34 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
         //dont show the top application name, saves space
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.main);
+
+        if (ContextCompat.checkSelfPermission(this,
+                permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{permission.ACCESS_FINE_LOCATION,
+                    permission.INTERNET}, 0);
+        } else {
+
+            initOnCreate();
+
+            //		// Add the AdView to the view hierarchy. The view will have no size
+            //		// until the ad is loaded.
+            //		RelativeLayout rLayout = (RelativeLayout)findViewById(R.id.relativeLayout);
+            //		rLayout.addView(adView);
+            //
+            //		RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) adView.getLayoutParams();
+            //		params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+            //		adView.setLayoutParams(params);
+            //		// Create an ad request. Check logcat output for the hashed device ID to
+            //		// get test ads on a physical device.
+            //
+            //		final TelephonyManager tm =(TelephonyManager)getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
+            //		String deviceid = tm.getDeviceId();
+            //		Log.i("REID",deviceid);
+        }
+    }
+
+    private void initOnCreate() {
         // Create an instance of GoogleAPIClient.
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -124,22 +156,6 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
         validateValues();
         attachTextChangeHandlers();
         attachButtonHandlers();
-
-        //		// Add the AdView to the view hierarchy. The view will have no size
-        //		// until the ad is loaded.
-        //		RelativeLayout rLayout = (RelativeLayout)findViewById(R.id.relativeLayout);
-        //		rLayout.addView(adView);
-        //
-        //		RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) adView.getLayoutParams();
-        //		params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
-        //		adView.setLayoutParams(params);
-        //		// Create an ad request. Check logcat output for the hashed device ID to
-        //		// get test ads on a physical device.
-        //
-        //		final TelephonyManager tm =(TelephonyManager)getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
-        //		String deviceid = tm.getDeviceId();
-        //		Log.i("REID",deviceid);
-
     }
 
     private void attachButtonHandlers() {
@@ -500,14 +516,6 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
     @Override
     public void onResume() {
         super.onResume();
-        if (ActivityCompat.checkSelfPermission(this, permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions();
-        } else {
-//            if (locationManager != null) {
-//                locationManager.requestLocationUpdates(mProvider, 40000, 1, this);
-//            }
-        }
 
         // Create the interstitial.
 
@@ -527,7 +535,9 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
         //			Log.i("mc", "null pointer from Amazon: " + e.getMessage());
         //		}
 
-        if (SplashActivity.hasInternet(this)) {
+        if (SplashActivity.hasInternet(this) && ContextCompat.checkSelfPermission(this,
+                permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
             AdRequest adRequest = new AdRequest.Builder()
                     .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
                     .addTestDevice("deviceid")
@@ -571,10 +581,7 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
         //			adView.pause();
         //		}
         super.onPause();
-        if (ActivityCompat.checkSelfPermission(this, permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions();
-        }
+
 //        if (locationManager != null) {
 //            locationManager.removeUpdates(this);
 //        }
@@ -592,38 +599,10 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
         super.onDestroy();
     }
 
-    private void requestPermissions() {
-        final ArrayList<String> permissionsMissing = new ArrayList<>();
-        ArrayList<String> permissionsNeeded = new ArrayList<>();
-        permissionsNeeded.add(permission.ACCESS_COARSE_LOCATION);
-        permissionsNeeded.add(permission.ACCESS_FINE_LOCATION);
-        for (final String permission : permissionsNeeded) {
-            if (ActivityCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-                permissionsMissing.add(permission);
-            }
-        }
-
-        if (!permissionsMissing.isEmpty()) {
-            final String[] array = new String[permissionsMissing.size()];
-            permissionsMissing.toArray(array);
-
-            //We will get the result asynchronously in onRequestPermissionsResult().
-            ActivityCompat.requestPermissions(this, array, 10001);
-        }
-    }
-
     private void initViews() {
         loadStateMap();
 
         mQueue = Volley.newRequestQueue(this);
-
-        if (ActivityCompat.checkSelfPermission(this, permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions();
-        } else {
-//            setupLocation();
-        }
-
         mortAmountEditText = (EditText) findViewById(R.id.MortgateAmountEditText);
 
         downPaymentEditText = (EditText) findViewById(R.id.DownPaymentEditText);
@@ -665,20 +644,6 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
         // Get the location manager
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         mProvider = locationManager.getBestProvider(criteria, false);
-        if (ActivityCompat.checkSelfPermission(this, permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        Location location = locationManager.getLastKnownLocation(mProvider);
-        if (location != null) {
-
-        }
     }
 
     private float getMortgageRate(String state) {
@@ -778,7 +743,12 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
         if (mQueue != null) {
             mQueue.cancelAll(TAG);
         }
-        mGoogleApiClient.disconnect();
+        if (ContextCompat.checkSelfPermission(this,
+                permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+
+            mGoogleApiClient.disconnect();
+        }
     }
 
     private void loadStateMap() {
@@ -859,26 +829,22 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        if (ActivityCompat.checkSelfPermission(this, permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
+
+        if (requestCode == 0 && grantResults.length > 0) {
+            initOnCreate();
+            mGoogleApiClient.connect();
         }
-//        setupLocation();
-        if (mGoogleApiClient.isConnected()) {
-            FusedLocationApi.requestLocationUpdates(
-                    mGoogleApiClient, mLocationRequest, this);
-        }
-//        locationManager.requestLocationUpdates(mProvider, 40000, 1, this);
     }
 
     @Override
     public void onConnected(@Nullable final Bundle bundle) {
+        if (ContextCompat.checkSelfPermission(this,
+                permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            finish();
+            return;
+        }
         mLastLocation = FusedLocationApi.getLastLocation(
                 mGoogleApiClient);
         if (mLastLocation != null) {
@@ -894,7 +860,12 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
     }
 
     protected void onStart() {
-        mGoogleApiClient.connect();
+        if (ContextCompat.checkSelfPermission(this,
+                permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+
+            mGoogleApiClient.connect();
+        }
         super.onStart();
     }
 
@@ -902,4 +873,24 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
     public void onConnectionFailed(@NonNull final ConnectionResult connectionResult) {
 
     }
+
+//    private void requestPermissions() {
+//        final ArrayList<String> permissionsMissing = new ArrayList<>();
+//        ArrayList<String> permissionsNeeded = new ArrayList<>();
+//        permissionsNeeded.add(permission.ACCESS_COARSE_LOCATION);
+//        permissionsNeeded.add(permission.ACCESS_FINE_LOCATION);
+//        for (final String permission : permissionsNeeded) {
+//            if (ActivityCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+//                permissionsMissing.add(permission);
+//            }
+//        }
+//
+//        if (!permissionsMissing.isEmpty()) {
+//            final String[] array = new String[permissionsMissing.size()];
+//            permissionsMissing.toArray(array);
+//
+//            //We will get the result asynchronously in onRequestPermissionsResult().
+//            ActivityCompat.requestPermissions(this, array, 10001);
+//        }
+//    }
 }

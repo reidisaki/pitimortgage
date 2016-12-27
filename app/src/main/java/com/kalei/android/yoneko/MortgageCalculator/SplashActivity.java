@@ -29,32 +29,12 @@ public class SplashActivity extends Activity {
         return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
-    public void onRequestPermissionsResult(int requestCode,
-            String[] permissions,
-            int[] grantResults) {
-        if (requestCode == 0) {
-            if (grantResults.length > 0) {
-                requestNewInterstitial();
-            } else {
-                finish();
-                // Permission was denied or request was cancelled
-            }
-        }
-    }
-
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_splash);
 
-        if (ContextCompat.checkSelfPermission(this,
-                permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            ActivityCompat.requestPermissions(this, new String[]{permission.ACCESS_FINE_LOCATION,
-                    permission.INTERNET}, 0);
-        }
         mInterstitialAd = new InterstitialAd(this);
         mInterstitialAd.setAdUnitId(getString(R.string.interstitial));
         mInterstitialAd.setAdListener(new AdListener() {
