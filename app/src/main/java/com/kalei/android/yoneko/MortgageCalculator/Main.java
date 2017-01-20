@@ -646,11 +646,13 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
         mProvider = locationManager.getBestProvider(criteria, false);
     }
 
-    private float getMortgageRate(String state) {
+    private float getMortgageRate(String location) {
         float rate = 0;
 
         // Instantiate the RequestQueue.
-        String url = "http://www.zillow.com/webservice/GetRateSummary.htm?zws-id=" + getString(R.string.zillow_id) + "&state=" + state + "&output=json";
+//        String url = "http://www.zillow.com/webservice/GetRateSummary.htm?zws-id=" + getString(R.string.zillow_id) + "&state=" + state + "&output=json";
+        String url = "https://mortgageapi.zillow.com/getRates?partnerId=" + getString(R.string.zillow_id) +
+                "&includeCurrentRate=true&queries.rateData.location.zipCode=" + location;
 
 // Request a string response from the provided URL.
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
@@ -660,7 +662,7 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
                         // Display the first 500 characters of the response string.
                         try {
                             JSONObject rootObject = new JSONObject(response);
-                            String thirtyYearFixed = rootObject.getJSONObject("response").getJSONObject("today").getString("thirtyYearFixed");
+                            String thirtyYearFixed = rootObject.getJSONObject("rates").getJSONObject("rateData").getJSONObject("currentRate").getString("rate");
                             IREditText.setText(thirtyYearFixed);
 
                             Animation fadeIn = AnimationUtils.loadAnimation(Main.this, R.anim.fade_in);
@@ -714,6 +716,7 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
     private void processLocation(final Location location) {
         try {
             if (!mStateName.equals(getStateName(location))) {
+                //This is actually zip code for now.
                 mStateName = getStateName(location);
                 getMortgageRate(mStateName);
             }
@@ -729,7 +732,8 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
 
         try {
             if (addresses != null && addresses.size() >= 0) {
-                return states.get(addresses.get(0).getAdminArea());
+                return addresses.get(0).getPostalCode();
+//                return states.get(addresses.get(0).getAdminArea());
             }
         } catch (Exception e) {
             //dont fail on international users.

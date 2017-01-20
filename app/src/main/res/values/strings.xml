@@ -32,6 +32,8 @@
     <string name="IRText">Interest Rate</string>
     <string name="HOAText">HOA</string>
     <string name="admob_banner_id">ca-app-pub-5747146577301976/9992390046</string>
-    <string name="zillow_id">X1-ZWz19hgj724c97_2jayc</string>
+    <string name="zillow_id">RD-LYNPMGZ</string>
+    <!--<string name="zillow_id">X1-ZWz19hgj724c97_2jayc</string>-->
+    <!--https://mortgageapi.zillow.com/getRates?partnerId=RD-LYNPMGZ&includeCurrentRate=true&queries.rateData.location.zipCode=96817-->
 
 </resources>
