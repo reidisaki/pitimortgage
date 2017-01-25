@@ -163,9 +163,14 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
 
             @Override
             public void onClick(View v) {
+                mCount++;
                 if (validateValues()) {
                     //set totals of each edit text value
-                    calculateValues();
+                    if (mCount % 10 == 0) {
+                        requestNewInterstitial();
+                    } else {
+                        calculateValues();
+                    }
                 } else {
                     Context context = getApplicationContext();
                     CharSequence text = "Error with values";
@@ -350,7 +355,7 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
                 .addTestDevice("SEE_YOUR_LOGCAT_TO_GET_YOUR_DEVICE_ID")
                 .build();
 //already showing an interstitial on splash page
-//        mInterstitialAd.loadAd(adRequest);
+        mInterstitialAd.loadAd(adRequest);
     }
 
     protected boolean validateValues() {
@@ -567,11 +572,13 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
 
                 }
             });
-            if (mCount % 2 == 0) {
-                requestNewInterstitial();
-                Log.i("mc", "LOADING AD now!");
-            }
-            mCount++;
+            //moved this into the calculation
+//            if (mCount % 5 == 0) {
+//                requestNewInterstitial();
+//                Log.i("mc", "LOADING AD now!");
+//            }
+//            mCount++;
+            processLocation(mLastLocation);
         }
     }
 
@@ -715,7 +722,7 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
 
     private void processLocation(final Location location) {
         try {
-            if (!mStateName.equals(getStateName(location))) {
+            if (location != null) {
                 //This is actually zip code for now.
                 mStateName = getStateName(location);
                 getMortgageRate(mStateName);

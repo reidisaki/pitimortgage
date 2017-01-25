@@ -17,6 +17,8 @@ import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.InterstitialAd;
 
+import java.util.Arrays;
+
 public class SplashActivity extends Activity {
 
     InterstitialAd mInterstitialAd;
