@@ -38,7 +38,9 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.text.method.KeyListener;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -94,6 +96,7 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
     LocationRequest mLocationRequest;
+    private boolean mAutoUpdateRate = true;
 
 
 
@@ -187,7 +190,8 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
             public boolean onTouch(View v, MotionEvent event) {
                 IREditText.setText("");
                 ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).showSoftInput(IREditText, 0);
-
+                mAutoUpdateRate = false;
+                IREditText.clearAnimation();
                 return false;
             }
         });
@@ -578,6 +582,8 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
 //                Log.i("mc", "LOADING AD now!");
 //            }
 //            mCount++;
+            //autoupdate until the user starts to edit the rate automatically
+            mAutoUpdateRate = true;
             processLocation(mLastLocation);
         }
     }
@@ -717,12 +723,11 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
     @Override
     public void onLocationChanged(final Location location) {
         mLastLocation = location;
-        processLocation(location);
     }
 
     private void processLocation(final Location location) {
         try {
-            if (location != null) {
+            if (location != null && mAutoUpdateRate) {
                 //This is actually zip code for now.
                 mStateName = getStateName(location);
                 getMortgageRate(mStateName);
