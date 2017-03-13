@@ -9,8 +9,8 @@ android {
         minSdkVersion 9
         targetSdkVersion 25
         multiDexEnabled true
-        versionName "1.5.1"
-        versionCode 28
+        versionName "1.5.2"
+        versionCode 29
     }
 
     buildTypes {
@@ -19,10 +19,15 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
+    dexOptions {
+        incremental true
+        javaMaxHeapSize "4g"
+    }
     dependencies {
         compile 'com.android.support:multidex:'
         compile 'com.google.android.gms:play-services:9.2.0'
         compile 'com.google.android.gms:play-services-location:9.2.0'
         compile 'com.android.volley:volley:1.0.0'
+        compile 'io.reactivex.rxjava2:rxandroid:2.0.0'
     }
 }

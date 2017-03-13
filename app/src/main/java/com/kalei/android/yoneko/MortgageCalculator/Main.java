@@ -64,6 +64,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import io.reactivex.Observable;
+
 import static com.google.android.gms.location.LocationServices.API;
 import static com.google.android.gms.location.LocationServices.FusedLocationApi;
 
@@ -83,6 +85,7 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
     private String TAG = "MortgageCalculator";
     private Map<String, String> states;
 
+    private int mPropertyValue = 400000, mLoanAmount = 100000;
     private static final int MILLISECONDS_PER_SECOND = 1000;
 
     public static final int UPDATE_INTERVAL_IN_SECONDS = 600;
@@ -140,6 +143,8 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
     }
 
     private void initOnCreate() {
+
+        Observable<String> o = Observable.just("hello");
         // Create an instance of GoogleAPIClient.
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -159,6 +164,8 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
         validateValues();
         attachTextChangeHandlers();
         attachButtonHandlers();
+        mortAmountEditText.setText("400000");
+        downPaymentEditText.setText("100000");
     }
 
     private void attachButtonHandlers() {
@@ -169,10 +176,11 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
                 mCount++;
                 if (validateValues()) {
                     //set totals of each edit text value
-                    if (mCount % 10 == 0) {
+                    if (mCount % 8 == 0) {
                         requestNewInterstitial();
                     } else {
-                        calculateValues();
+                        processLocation(mLastLocation);
+//                        calculateValues();
                     }
                 } else {
                     Context context = getApplicationContext();
@@ -310,15 +318,16 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
 
         float loanAmount = (float) InputUtils.convertStringToLong(mortAmountEditText.getText().toString()) -
                 (float) InputUtils.convertStringToLong(downPaymentEditText.getText().toString());
-        float annualTax =
-                (Float.valueOf(taxEditText.getText().toString()) * (float) InputUtils.convertStringToLong(mortAmountEditText.getText().toString())) /
-                        100;
+        float annualTax = (Float.valueOf(taxEditText.getText().toString())
+                * (float) InputUtils.convertStringToLong(mortAmountEditText.getText().toString())) / 100;
         float annualInsurance = Float.valueOf(insuranceEditText.getText().toString());
 
+        mLoanAmount = (int) loanAmount;
+        mPropertyValue = mLoanAmount + (int) InputUtils.convertStringToLong(downPaymentEditText.getText().toString());
         principalTextView.setText(String.format(" %,.2f", loanAmount * mi / (1 - (1 / base))));
         taxesTextView.setText(String.format("%,.2f", annualTax / 12));
         insuranceTextView.setText(String.format("%,.2f", annualInsurance / 12));
-        HOA = Double.valueOf(HOA_EditText.getText().toString());
+        HOA = HOA_EditText.getText().toString() != "" ? 0 : Double.valueOf(HOA_EditText.getText().toString());
         totalTextView.setText(String.format("%,.2f", loanAmount * mi / (1 - (1 / base)) + annualTax / 12 + annualInsurance / 12 + HOA));
         if (SplashActivity.hasInternet(this)) {
             //dont' request new ad every time they click
@@ -664,8 +673,23 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
 
         // Instantiate the RequestQueue.
 //        String url = "http://www.zillow.com/webservice/GetRateSummary.htm?zws-id=" + getString(R.string.zillow_id) + "&state=" + state + "&output=json";
+        //https://mortgageapi.zillow.com/getRates?partnerId=RD-LYNPMGZ&includeCurrentRate=true&queries.1.propertyBucket.location.zipCode=21046&queries.1.propertyBucket.propertyValue=400000&queries.1.propertyBucket.loanAmount=300000
+
+        if (!mortAmountEditText.getText().toString().equals("400,000")) {
+            mPropertyValue = (int) InputUtils.convertStringToLong(mortAmountEditText.getText().toString());
+        }
+        if (!downPaymentEditText.getText().toString().equals("100,000")) {
+            mLoanAmount = mPropertyValue - (int) InputUtils.convertStringToLong(downPaymentEditText.getText().toString());
+        }
+        if (mPropertyValue <= 0) {
+            mPropertyValue = 400000;
+        }
+        if (mLoanAmount <= 0) {
+            mLoanAmount = 100000;
+        }
         String url = "https://mortgageapi.zillow.com/getRates?partnerId=" + getString(R.string.zillow_id) +
-                "&includeCurrentRate=true&queries.rateData.location.zipCode=" + location;
+                "&includeCurrentRate=true&queries.1.propertyBucket.location.zipCode=" + location + "&queries.1.propertyBucket.propertyValue=" + mPropertyValue +
+                "&queries.1.propertyBucket.loanAmount=" + mLoanAmount;
 
 // Request a string response from the provided URL.
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
@@ -675,8 +699,10 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
                         // Display the first 500 characters of the response string.
                         try {
                             JSONObject rootObject = new JSONObject(response);
-                            String thirtyYearFixed = rootObject.getJSONObject("rates").getJSONObject("rateData").getJSONObject("currentRate").getString("rate");
-                            IREditText.setText(thirtyYearFixed);
+                            String thirtyYearFixed = rootObject.getJSONObject("rates").getJSONObject("1").getJSONObject("currentRate").getString("rate");
+                            if (!thirtyYearFixed.equals("0.0")) {
+                                IREditText.setText(thirtyYearFixed);
+                            }
 
                             Animation fadeIn = AnimationUtils.loadAnimation(Main.this, R.anim.fade_in);
                             IREditText.startAnimation(fadeIn);
@@ -692,6 +718,7 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
                                     Animation fadeOut = AnimationUtils.loadAnimation(Main.this, R.anim.fade_out);
                                     IREditText.startAnimation(fadeOut);
                                     IREditText.setTextColor(Color.WHITE);
+                                    calculateValues();
                                 }
 
                                 @Override
