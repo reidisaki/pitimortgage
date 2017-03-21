@@ -179,8 +179,11 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
                     if (mCount % 8 == 0) {
                         requestNewInterstitial();
                     } else {
-                        processLocation(mLastLocation);
-//                        calculateValues();
+                        if (mAutoUpdateRate) {
+                            processLocation(mLastLocation);
+                        } else {
+                            calculateValues();
+                        }
                     }
                 } else {
                     Context context = getApplicationContext();
