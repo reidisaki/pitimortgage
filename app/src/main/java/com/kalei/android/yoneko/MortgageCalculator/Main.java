@@ -99,7 +99,8 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
     LocationRequest mLocationRequest;
-    private boolean mAutoUpdateRate = true;
+    private boolean mAutoUpdateRate = true, mLocationEnabled = true, mActivityInitialized = false;
+
 
 
 
@@ -143,29 +144,32 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
     }
 
     private void initOnCreate() {
+        if (!mActivityInitialized) {
+            mActivityInitialized = true;
+            Observable<String> o = Observable.just("hello");
+            // Create an instance of GoogleAPIClient.
+            if (mGoogleApiClient == null && mLocationEnabled) {
+                mGoogleApiClient = new GoogleApiClient.Builder(this)
+                        .addConnectionCallbacks(this)
+                        .addOnConnectionFailedListener(this)
+                        .addApi(API)
+                        .build();
 
-        Observable<String> o = Observable.just("hello");
-        // Create an instance of GoogleAPIClient.
-        if (mGoogleApiClient == null) {
-            mGoogleApiClient = new GoogleApiClient.Builder(this)
-                    .addConnectionCallbacks(this)
-                    .addOnConnectionFailedListener(this)
-                    .addApi(API)
-                    .build();
+                mLocationRequest = LocationRequest.create();
+                mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+                mLocationRequest.setInterval(UPDATE_INTERVAL);
+                mLocationRequest.setFastestInterval(FASTEST_INTERVAL);
+            }
+            //		AdRegistration.setAppKey("ebbbcbf8ca734a10aa32cffb9f2c4971");
 
-            mLocationRequest = LocationRequest.create();
-            mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-            mLocationRequest.setInterval(UPDATE_INTERVAL);
-            mLocationRequest.setFastestInterval(FASTEST_INTERVAL);
+            initViews();
+            validateValues();
+            attachTextChangeHandlers();
+            attachButtonHandlers();
+            mortAmountEditText.setText("400000");
+            downPaymentEditText.setText("100000");
+            percentageEditText.setText("25");
         }
-        //		AdRegistration.setAppKey("ebbbcbf8ca734a10aa32cffb9f2c4971");
-
-        initViews();
-        validateValues();
-        attachTextChangeHandlers();
-        attachButtonHandlers();
-        mortAmountEditText.setText("400000");
-        downPaymentEditText.setText("100000");
     }
 
     private void attachButtonHandlers() {
@@ -179,7 +183,7 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
                     if (mCount % 8 == 0) {
                         requestNewInterstitial();
                     } else {
-                        if (mAutoUpdateRate) {
+                        if (mAutoUpdateRate && mLocationEnabled) {
                             processLocation(mLastLocation);
                         } else {
                             calculateValues();
@@ -295,6 +299,7 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
                 return false;
             }
         });
+        mLastEdited = downPaymentEditText.getId();
     }
 
     protected void handleDollarFormatting(final TextWatcher textWatcher, EditText editText, String stringValue) {
@@ -324,7 +329,6 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
         float annualTax = (Float.valueOf(taxEditText.getText().toString())
                 * (float) InputUtils.convertStringToLong(mortAmountEditText.getText().toString())) / 100;
         float annualInsurance = Float.valueOf(insuranceEditText.getText().toString());
-
         mLoanAmount = (int) loanAmount;
         mPropertyValue = mLoanAmount + (int) InputUtils.convertStringToLong(downPaymentEditText.getText().toString());
         principalTextView.setText(String.format(" %,.2f", loanAmount * mi / (1 - (1 / base))));
@@ -555,16 +559,16 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
         //		} catch(NullPointerException e) {
         //			Log.i("mc", "null pointer from Amazon: " + e.getMessage());
         //		}
+        initOnCreate();
+        if (SplashActivity.hasInternet(this)) {
 
-        if (SplashActivity.hasInternet(this) && ContextCompat.checkSelfPermission(this,
-                permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
             AdRequest adRequest = new AdRequest.Builder()
                     .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
                     .addTestDevice("deviceid")
                     .build();
             // Start loading the ad in the background.
             mAdView.loadAd(adRequest);
+
             if (mAdView != null) {
                 mAdView.resume();
             }
@@ -588,6 +592,10 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
 
                 }
             });
+        }
+        if (ContextCompat.checkSelfPermission(this,
+                permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
             //moved this into the calculation
 //            if (mCount % 5 == 0) {
 //                requestNewInterstitial();
@@ -653,7 +661,7 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
 //						@Override
 //						public void run() {
 //							AdTargetingOptions adOptions = new AdTargetingOptions();
-//							adView.loadAd(adOptions);			
+//							adView.loadAd(adOptions);
 //						}
 //					});
 //
@@ -721,7 +729,9 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
                                     Animation fadeOut = AnimationUtils.loadAnimation(Main.this, R.anim.fade_out);
                                     IREditText.startAnimation(fadeOut);
                                     IREditText.setTextColor(Color.WHITE);
-                                    calculateValues();
+                                    if (IREditText.getText().toString().length() > 0) {
+                                        calculateValues();
+                                    }
                                 }
 
                                 @Override
@@ -757,7 +767,7 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
 
     private void processLocation(final Location location) {
         try {
-            if (location != null && mAutoUpdateRate) {
+            if (mLocationEnabled && location != null && mAutoUpdateRate) {
                 //This is actually zip code for now.
                 mStateName = getStateName(location);
                 getMortgageRate(mStateName);
@@ -888,16 +898,17 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
                 permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
 
-            finish();
-            return;
+            mLocationEnabled = false;
         }
-        mLastLocation = FusedLocationApi.getLastLocation(
-                mGoogleApiClient);
-        if (mLastLocation != null) {
-            processLocation(mLastLocation);
+        if (mLocationEnabled) {
+            mLastLocation = FusedLocationApi.getLastLocation(
+                    mGoogleApiClient);
+            if (mLastLocation != null) {
+                processLocation(mLastLocation);
+            }
+            FusedLocationApi.requestLocationUpdates(
+                    mGoogleApiClient, mLocationRequest, this);
         }
-        FusedLocationApi.requestLocationUpdates(
-                mGoogleApiClient, mLocationRequest, this);
     }
 
     @Override
