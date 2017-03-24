@@ -17,7 +17,11 @@ import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.InterstitialAd;
 
+import com.crashlytics.android.Crashlytics;
+
 import java.util.Arrays;
+
+import io.fabric.sdk.android.Fabric;
 
 public class SplashActivity extends Activity {
 
@@ -36,7 +40,7 @@ public class SplashActivity extends Activity {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_splash);
-
+        Fabric.with(this, new Crashlytics());
         mInterstitialAd = new InterstitialAd(this);
         mInterstitialAd.setAdUnitId(getString(R.string.interstitial));
         mInterstitialAd.setAdListener(new AdListener() {

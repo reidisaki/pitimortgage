@@ -27,6 +27,7 @@
         -->
         <activity android:name=".SplashActivity"
                   android:noHistory="true">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
@@ -37,6 +38,10 @@
                 android:name="com.google.android.gms.ads.AdActivity"
                 style="@android:style/Theme.Translucent"
                 android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"/>
+        <meta-data
+                android:name="io.fabric.ApiKey"
+                android:value="c972bfa76ea337247175a6cc36112e65a8385cd4"
+        />
     </application>
 
     <uses-permission android:name="android.permission.INTERNET"/>

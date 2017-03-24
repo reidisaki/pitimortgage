@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="hello">Hello World, Main!</string>
-    <string name="app_name">MortgageCalculator</string>
     <string name="MortgageAmountText">Mortgage</string>
     <string name="DownPaymentText">Amount \n Down</string>
     <string name="PercentageText">Percentage \n Down</string>
@@ -33,6 +32,7 @@
     <string name="HOAText">HOA</string>
     <string name="admob_banner_id">ca-app-pub-5747146577301976/9992390046</string>
     <string name="zillow_id">RD-LYNPMGZ</string>
+    version_name
     <!--<string name="zillow_id">X1-ZWz19hgj724c97_2jayc</string>-->
     <!--https://mortgageapi.zillow.com/getRates?partnerId=RD-LYNPMGZ&includeCurrentRate=true&queries.rateData.location.zipCode=96817-->
 
