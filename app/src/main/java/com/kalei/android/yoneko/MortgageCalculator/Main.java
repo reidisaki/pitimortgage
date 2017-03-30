@@ -323,19 +323,22 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
         for (int i = 0; i < Integer.valueOf(termsEditText.getText().toString()) * 12; i++) {
             base = base * mbase;
         }
-
-        float loanAmount = (float) InputUtils.convertStringToLong(mortAmountEditText.getText().toString()) -
-                (float) InputUtils.convertStringToLong(downPaymentEditText.getText().toString());
-        float annualTax = (Float.valueOf(taxEditText.getText().toString())
-                * (float) InputUtils.convertStringToLong(mortAmountEditText.getText().toString())) / 100;
-        float annualInsurance = Float.valueOf(insuranceEditText.getText().toString());
-        mLoanAmount = (int) loanAmount;
-        mPropertyValue = mLoanAmount + (int) InputUtils.convertStringToLong(downPaymentEditText.getText().toString());
-        principalTextView.setText(String.format(" %,.2f", loanAmount * mi / (1 - (1 / base))));
-        taxesTextView.setText(String.format("%,.2f", annualTax / 12));
-        insuranceTextView.setText(String.format("%,.2f", annualInsurance / 12));
-        HOA = HOA_EditText.getText().toString() != "" ? 0 : Double.valueOf(HOA_EditText.getText().toString());
-        totalTextView.setText(String.format("%,.2f", loanAmount * mi / (1 - (1 / base)) + annualTax / 12 + annualInsurance / 12 + HOA));
+        try {
+            float loanAmount = (float) InputUtils.convertStringToLong(mortAmountEditText.getText().toString()) -
+                    (float) InputUtils.convertStringToLong(downPaymentEditText.getText().toString());
+            float annualTax = (Float.valueOf(taxEditText.getText().toString())
+                    * (float) InputUtils.convertStringToLong(mortAmountEditText.getText().toString())) / 100;
+            float annualInsurance = Float.parseFloat(insuranceEditText.getText().toString());
+            mLoanAmount = (int) loanAmount;
+            mPropertyValue = mLoanAmount + (int) InputUtils.convertStringToLong(downPaymentEditText.getText().toString());
+            principalTextView.setText(String.format(" %,.2f", loanAmount * mi / (1 - (1 / base))));
+            taxesTextView.setText(String.format("%,.2f", annualTax / 12));
+            insuranceTextView.setText(String.format("%,.2f", annualInsurance / 12));
+            HOA = HOA_EditText.getText().toString() != "" ? 0 : Double.valueOf(HOA_EditText.getText().toString());
+            totalTextView.setText(String.format("%,.2f", loanAmount * mi / (1 - (1 / base)) + annualTax / 12 + annualInsurance / 12 + HOA));
+        } catch (NumberFormatException e) {
+            Toast.makeText(this, "There was a problem with your input value. ", Toast.LENGTH_SHORT).show();
+        }
         if (SplashActivity.hasInternet(this)) {
             //dont' request new ad every time they click
             //            requestNewAd();
