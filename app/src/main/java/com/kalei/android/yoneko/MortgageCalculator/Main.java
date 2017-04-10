@@ -334,7 +334,7 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
             principalTextView.setText(String.format(" %,.2f", loanAmount * mi / (1 - (1 / base))));
             taxesTextView.setText(String.format("%,.2f", annualTax / 12));
             insuranceTextView.setText(String.format("%,.2f", annualInsurance / 12));
-            HOA = HOA_EditText.getText().toString() != "" ? 0 : Double.valueOf(HOA_EditText.getText().toString());
+            HOA = HOA_EditText.getText().toString() == "" ? 0 : Double.valueOf(HOA_EditText.getText().toString());
             totalTextView.setText(String.format("%,.2f", loanAmount * mi / (1 - (1 / base)) + annualTax / 12 + annualInsurance / 12 + HOA));
         } catch (NumberFormatException e) {
             Toast.makeText(this, "There was a problem with your input value. ", Toast.LENGTH_SHORT).show();

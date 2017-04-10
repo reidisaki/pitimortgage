@@ -14,8 +14,8 @@ android {
         minSdkVersion 9
         targetSdkVersion 25
         multiDexEnabled true
-        versionName "1.5.5"
-        versionCode 32
+        versionName "1.5.6"
+        versionCode 34
         resValue 'string', 'version_name', versionName
     }
     buildTypes {
