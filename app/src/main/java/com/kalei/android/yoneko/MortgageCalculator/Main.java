@@ -320,6 +320,9 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
         double base = 1;
         double mbase = 1 + mi;
         double HOA = 0;
+        if (termsEditText.getText().toString().equals("")) {
+            termsEditText.setText("30");
+        }
         for (int i = 0; i < Integer.valueOf(termsEditText.getText().toString()) * 12; i++) {
             base = base * mbase;
         }

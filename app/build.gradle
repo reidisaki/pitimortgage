@@ -14,8 +14,8 @@ android {
         minSdkVersion 9
         targetSdkVersion 25
         multiDexEnabled true
-        versionName "1.5.6"
-        versionCode 34
+        versionName "1.5.8"
+        versionCode 36
         resValue 'string', 'version_name', versionName
     }
     buildTypes {
@@ -51,7 +51,7 @@ android {
 
 }
 dependencies {
-    compile 'com.android.support:multidex:'
+    compile 'com.android.support:multidex:1.0.1'
     compile 'com.google.android.gms:play-services:9.2.0'
     compile 'com.google.android.gms:play-services-location:9.2.0'
     compile 'com.android.volley:volley:1.0.0'
