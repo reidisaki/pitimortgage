@@ -377,11 +377,14 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
     }
 
     private void requestNewInterstitial() {
-        AdRequest adRequest = new AdRequest.Builder()
-                .addTestDevice("SEE_YOUR_LOGCAT_TO_GET_YOUR_DEVICE_ID")
-                .build();
+        if (SplashActivity.hasInternet(this)) {
+            AdRequest adRequest = new AdRequest.Builder()
+                    .addTestDevice("SEE_YOUR_LOGCAT_TO_GET_YOUR_DEVICE_ID")
+                    .build();
+
+            mInterstitialAd.loadAd(adRequest);
+        }
 //already showing an interstitial on splash page
-        mInterstitialAd.loadAd(adRequest);
     }
 
     protected boolean validateValues() {
@@ -773,10 +776,12 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
 
     private void processLocation(final Location location) {
         try {
-            if (mLocationEnabled && location != null && mAutoUpdateRate) {
+            if (mLocationEnabled && location != null && mAutoUpdateRate && SplashActivity.hasInternet(this)) {
                 //This is actually zip code for now.
                 mStateName = getStateName(location);
                 getMortgageRate(mStateName);
+            } else {
+                calculateValues();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -790,7 +795,8 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
 
         try {
             if (addresses != null && addresses.size() >= 0) {
-                return addresses.get(0).getPostalCode();
+                //default to culver city if you can't get the zipcode.
+                return (addresses.get(0).getPostalCode() == null ? "90230" : addresses.get(0).getPostalCode());
 //                return states.get(addresses.get(0).getAdminArea());
             }
         } catch (Exception e) {
