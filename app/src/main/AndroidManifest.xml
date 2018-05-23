@@ -27,7 +27,12 @@
                 android:name="com.amazon.device.ads.AdActivity"
                 android:configChanges="keyboardHidden|orientation|screenSize"/>
         -->
-        <activity android:name=".SplashActivity"
+
+        <activity android:name="com.adcolony.sdk.AdColonyInterstitialActivity"
+                  android:configChanges="keyboardHidden|orientation|screenSize"/>
+        <activity android:name="com.adcolony.sdk.AdColonyAdViewActivity"
+                  android:configChanges="keyboardHidden|orientation|screenSize"/>
+        <activity android:name=".AdColonySplashActivity"
                   android:noHistory="true">
 
             <intent-filter>
@@ -36,6 +41,15 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <!--<activity android:name=".SplashActivity"-->
+        <!--android:noHistory="true">-->
+
+        <!--<intent-filter>-->
+        <!--<action android:name="android.intent.action.MAIN"/>-->
+
+        <!--<category android:name="android.intent.category.LAUNCHER"/>-->
+        <!--</intent-filter>-->
+        <!--</activity>-->
         <activity
                 android:name="com.google.android.gms.ads.AdActivity"
                 style="@android:style/Theme.Translucent"

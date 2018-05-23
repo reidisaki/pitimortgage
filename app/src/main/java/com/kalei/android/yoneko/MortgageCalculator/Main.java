@@ -23,6 +23,7 @@ import org.json.JSONObject;
 import android.Manifest.permission;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Address;
@@ -181,7 +182,8 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
                 if (validateValues()) {
                     //set totals of each edit text value
                     if (mCount % 8 == 0) {
-                        requestNewInterstitial();
+                        startActivity(new Intent(Main.this, AdColonySplashActivity.class));
+//                        requestNewInterstitial();
                     } else {
                         if (mAutoUpdateRate && mLocationEnabled) {
                             processLocation(mLastLocation);
