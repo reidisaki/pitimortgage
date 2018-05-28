@@ -1,25 +1,18 @@
 package com.kalei.android.yoneko.MortgageCalculator;
 
-import android.Manifest.permission;
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.os.Bundle;
-import android.os.Handler;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.view.Window;
-
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.InterstitialAd;
 
 import com.crashlytics.android.Crashlytics;
 
-import java.util.Arrays;
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.Bundle;
+import android.view.Window;
 
 import io.fabric.sdk.android.Fabric;
 
@@ -41,9 +34,21 @@ public class SplashActivity extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_splash);
         Fabric.with(this, new Crashlytics());
+
         mInterstitialAd = new InterstitialAd(this);
         mInterstitialAd.setAdUnitId(getString(R.string.interstitial));
         mInterstitialAd.setAdListener(new AdListener() {
+            @Override
+            public void onAdFailedToLoad(final int i) {
+                super.onAdFailedToLoad(i);
+                startActivity();
+            }
+
+            @Override
+            public void onAdLeftApplication() {
+                super.onAdLeftApplication();
+            }
+
             @Override
             public void onAdLoaded() {
                 super.onAdLoaded();
