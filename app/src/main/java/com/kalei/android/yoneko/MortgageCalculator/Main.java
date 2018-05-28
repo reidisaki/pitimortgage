@@ -2,7 +2,7 @@ package com.kalei.android.yoneko.MortgageCalculator;
 
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdView;
+//import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -37,10 +37,13 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.telephony.TelephonyManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.method.KeyListener;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -53,6 +56,7 @@ import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -65,6 +69,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.facebook.ads.*;
+
 import io.reactivex.Observable;
 
 import static com.google.android.gms.location.LocationServices.API;
@@ -75,7 +81,6 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
     private TextView principalTextView, taxesTextView, insuranceTextView, totalTextView;
     private Button calculateButton;
     //	private AdLayout adView;
-    private AdView mAdView;
     private int mLastEdited = 0;
     private int mCount = 0;
     Handler handler = new Handler();
@@ -85,6 +90,7 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
     private RequestQueue mQueue;
     private String TAG = "MortgageCalculator";
     private Map<String, String> states;
+    private String adId = "173302670036196_173303030036160";
 
     private int mPropertyValue = 400000, mLoanAmount = 100000;
     private static final int MILLISECONDS_PER_SECOND = 1000;
@@ -101,8 +107,23 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
     private Location mLastLocation;
     LocationRequest mLocationRequest;
     private boolean mAutoUpdateRate = true, mLocationEnabled = true, mActivityInitialized = false;
+    private AdView adView;
 
+    private boolean checkIsTablet(Context context) {
+        boolean isTablet = false;
+        Display display = ((Activity) context).getWindowManager().getDefaultDisplay();
+        DisplayMetrics metrics = new DisplayMetrics();
+        display.getMetrics(metrics);
 
+        float widthInches = metrics.widthPixels / metrics.xdpi;
+        float heightInches = metrics.heightPixels / metrics.ydpi;
+        double diagonalInches = Math.sqrt(Math.pow(widthInches, 2) + Math.pow(heightInches, 2));
+        if (diagonalInches >= 7.0) {
+            isTablet = true;
+        }
+
+        return isTablet;
+    }
 
 
     /* Your ad unit id. Replace with your actual ad unit id. */
@@ -117,6 +138,20 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
         //dont show the top application name, saves space
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.main);
+
+        // Instantiate an AdView view
+        adView = new AdView(this, adId, checkIsTablet(this) ? AdSize.BANNER_HEIGHT_90 : AdSize.BANNER_HEIGHT_50);
+
+        // Find the Ad Container
+        LinearLayout adContainer = (LinearLayout) findViewById(R.id.banner_container);
+
+        // Add the ad view to your activity layout
+        adContainer.addView(adView);
+
+//        AdSettings.addTestDevice("b900f080-09a9-4df2-9299-3ad29312648b");
+        AdSettings.addTestDevice("4488ddba-ce8e-4b25-b016-4930adae505a");
+        // Request an ad
+        adView.loadAd();
 
         if (ContextCompat.checkSelfPermission(this,
                 permission.ACCESS_FINE_LOCATION)
@@ -372,10 +407,10 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
                 .addTestDevice("SEE_YOUR_LOGCAT_TO_GET_YOUR_DEVICE_ID")
                 .build();
 
-        mAdView.loadAd(adRequest);
-        if (mAdView != null) {
-            mAdView.resume();
-        }
+//        mAdView.loadAd(adRequest);
+//        if (mAdView != null) {
+//            mAdView.resume();
+//        }
     }
 
     private void requestNewInterstitial() {
@@ -577,12 +612,7 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
                     .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
                     .addTestDevice("deviceid")
                     .build();
-            // Start loading the ad in the background.
-            mAdView.loadAd(adRequest);
 
-            if (mAdView != null) {
-                mAdView.resume();
-            }
             mInterstitialAd = new InterstitialAd(this);
             mInterstitialAd.setAdUnitId(getString(R.string.interstitial));
 
@@ -637,9 +667,10 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
     @Override
     public void onDestroy() {
         // Destroy the AdView.
-        if (mAdView != null) {
-            mAdView.destroy();
+        if (adView != null) {
+            adView.destroy();
         }
+
         super.onDestroy();
     }
 
@@ -662,7 +693,7 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
         taxesTextView = (TextView) findViewById(R.id.TaxesMonthValueText);
         totalTextView = (TextView) findViewById(R.id.TotalValueText);
 
-        mAdView = (AdView) findViewById(R.id.adView);
+//        mAdView = (AdView) findViewById(R.id.adView);
 
 //		Log.i("Reid","LOADING AD now!");
 //		try {

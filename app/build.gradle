@@ -18,11 +18,11 @@ android {
     buildToolsVersion "23.0.2"
     defaultConfig {
         applicationId "com.kalei.android.yoneko.MortgageCalculator"
-        minSdkVersion 9
+        minSdkVersion 11
         targetSdkVersion 27
         multiDexEnabled true
         versionName "1.6.0"
-        versionCode 38
+        versionCode 42
         resValue 'string', 'version_name', versionName
         signingConfig signingConfigs.app
     }
@@ -59,11 +59,12 @@ android {
 }
 dependencies {
     compile 'com.android.support:multidex:1.0.1'
-    compile 'com.google.android.gms:play-services:9.2.0'
-    compile 'com.google.android.gms:play-services-location:9.2.0'
+    compile 'com.google.android.gms:play-services:10.0.1'
+    compile 'com.google.android.gms:play-services-location:10.0.1'
     compile 'com.android.volley:volley:1.0.0'
     compile 'com.adcolony:sdk:3.3.4'
     compile 'io.reactivex.rxjava2:rxandroid:2.0.0'
+    compile 'com.facebook.android:audience-network-sdk:4.28.1'
     compile('com.crashlytics.sdk.android:crashlytics:2.6.7@aar') {
         transitive = true;
     }
