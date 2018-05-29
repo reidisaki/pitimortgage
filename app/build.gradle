@@ -12,10 +12,10 @@ android {
     defaultConfig {
         applicationId "com.kalei.android.yoneko.MortgageCalculator"
         minSdkVersion 9
-        targetSdkVersion 25
+        targetSdkVersion 26
         multiDexEnabled true
-        versionName "1.5.9"
-        versionCode 37
+        versionName "1.6.2"
+        versionCode 44
         resValue 'string', 'version_name', versionName
     }
     buildTypes {
