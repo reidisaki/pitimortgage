@@ -694,6 +694,7 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
         // Instantiate the RequestQueue.
 //        String url = "http://www.zillow.com/webservice/GetRateSummary.htm?zws-id=" + getString(R.string.zillow_id) + "&state=" + state + "&output=json";
         //https://mortgageapi.zillow.com/getRates?partnerId=RD-LYNPMGZ&includeCurrentRate=true&queries.1.propertyBucket.location.zipCode=21046&queries.1.propertyBucket.propertyValue=400000&queries.1.propertyBucket.loanAmount=300000
+        //https://mortgageapi.zillow.com/getRates?partnerId=RD-LYNPMGZ&includeCurrentRate=true&queries.1.propertyBucket.location.stateAbbreviation=MD&queries.1.propertyBucket.propertyValue=400000&queries.1.propertyBucket.loanAmount=300000
 
         if (!mortAmountEditText.getText().toString().equals("400,000")) {
             mPropertyValue = (int) InputUtils.convertStringToLong(mortAmountEditText.getText().toString());
@@ -708,7 +709,7 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
             mLoanAmount = 100000;
         }
         String url = "https://mortgageapi.zillow.com/getRates?partnerId=" + getString(R.string.zillow_id) +
-                "&includeCurrentRate=true&queries.1.propertyBucket.location.zipCode=" + location + "&queries.1.propertyBucket.propertyValue=" + mPropertyValue +
+                "&includeCurrentRate=true&queries.1.propertyBucket.location.stateAbbreviation=" + location + "&queries.1.propertyBucket.propertyValue=" + mPropertyValue +
                 "&queries.1.propertyBucket.loanAmount=" + mLoanAmount;
 
 // Request a string response from the provided URL.
@@ -796,7 +797,7 @@ public class Main extends Activity implements ConnectionCallbacks, OnConnectionF
         try {
             if (addresses != null && addresses.size() >= 0) {
                 //default to culver city if you can't get the zipcode.
-                return (addresses.get(0).getPostalCode() == null ? "90230" : addresses.get(0).getPostalCode());
+                return (addresses.get(0).getAdminArea() == null ? "CA" : states.get(addresses.get(0).getAdminArea()));
 //                return states.get(addresses.get(0).getAdminArea());
             }
         } catch (Exception e) {

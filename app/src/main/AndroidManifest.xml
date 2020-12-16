@@ -10,6 +10,7 @@
             android:targetSdkVersion="8"/>
 
     <application
+            android:networkSecurityConfig="@xml/network_security_config"
             android:theme="@style/Theme.AppCompat.NoActionBar"
             android:icon="@drawable/icon"
             android:name=".MortgageCalculatorApplication"
@@ -44,6 +45,9 @@
                 android:name="io.fabric.ApiKey"
                 android:value="c972bfa76ea337247175a6cc36112e65a8385cd4"
         />
+        <uses-library
+                android:name="org.apache.http.legacy"
+                android:required="false"/>
     </application>
 
     <uses-permission android:name="android.permission.INTERNET"/>
